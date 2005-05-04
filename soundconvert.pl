@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.3 2005-05-04 22:58:16 mitch Exp $
+# $Id: soundconvert.pl,v 1.4 2005-05-04 23:28:52 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,6 +9,7 @@
 #
 
 use strict;
+use Audio::FLAC::Header;  # from libaudio-flac-header-perl
 use MP3::Info;            # from libmp3-info-perl
 use Ogg::Vorbis::Header;  # from libogg-vorbis-header-perl
 
@@ -75,6 +76,8 @@ my $typelist = {
 	    'tracknumber' => 'TRACKNUM',
 	    'date' => 'YEAR',
 	    'title' => 'TITLE',
+	    'Comment' => 'COMMENT',
+	    'comment' => 'COMMENT',
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
@@ -109,14 +112,51 @@ my $typelist = {
 	TAG_NATIVE => sub {
 	    # done at encoding time
 	},
+    },
+
+    'audio/flac' => {
+
+	NAME => 'FLAC',
+	NEW_EXTENSION => 'flac',
+	GET_INFO => sub {
+	    return Audio::FLAC::Header->new( shift )->tags;
+	},
+	REMAP_INFO => {
+	    'artist' => 'ARTIST',
+	    'album' => 'ALBUM',
+	    'tracknumber' => 'TRACKNUM',
+	    'date' => 'YEAR',
+	    'title' => 'TITLE',
+	    'Comment' => 'COMMENT',
+	    'comment' => 'COMMENT',
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    return ('flac','-s','-d','-c',$file);
+	},
+	ENCODE_TO_NATIVE => sub {
+	    my $file = shift;
+	    my $tags = shift;
+	    return ('flac','-s','-f','-o',$file,'-');
+	},
+	TAG_NATIVE => sub {
+	    my $file = shift;
+	    my $tags = shift;
+	    open TAGS, '|-', ('metaflac', '--import-tags-from=-', $file) or die "can't open metaflac: $!";
+	    foreach my $key (keys %{$tags}) {
+		print TAGS "$key=$tags->{$key}";
+	    }
+	    close TAGS or die "can't close metaflac: $!";
+	},
 	
     }
-
+    
 };
 
 # fest verdrahtet: Ausgabe ist MP3
-#my $encoder = $typelist->{'audio/mpeg'};
-my $encoder = $typelist->{'application/ogg'};
+#my $encoder = $typelist->{'audio/flac'};
+my $encoder = $typelist->{'audio/mpeg'};
+#my $encoder = $typelist->{'application/ogg'};
 
 foreach my $file (@ARGV) {
 
@@ -126,6 +166,17 @@ foreach my $file (@ARGV) {
     `file -i "$file"` =~ /(\S+)$/;
     my $type = $1;
     print "filetype: <$type>\n";
+
+# TODO schön und allgemeingültig! machen!
+# Sonderlocke für FLAC (UGLY!!)
+    if ($type eq 'application/octet-stream') {
+	if ( ($file =~ /\.flac$/)
+	     or (`file "$file"` =~ /FLAC audio bitstream data/)) {
+	    $type = 'audio/flac';
+	}
+    }
+# /TODO
+
     if (exists $typelist->{$type}) {
 	my $handle = $typelist->{$type};
 	print "type: $handle->{NAME}\n";
