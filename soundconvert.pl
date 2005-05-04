@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.2 2005-05-04 22:52:49 mitch Exp $
+# $Id: soundconvert.pl,v 1.3 2005-05-04 22:58:16 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -82,7 +82,7 @@ my $typelist = {
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
-	    my $tags = { shift };
+	    my $tags = \%{shift()};
 	    my @call = ('oggenc',
 			'-Q',       # quiet
 			'-q','6',   # quality
@@ -104,6 +104,7 @@ my $typelist = {
 	    }
 	    push @call, ('-',
 			 '-o', $file);
+	    return @call;
 	},
 	TAG_NATIVE => sub {
 	    # done at encoding time
@@ -114,7 +115,8 @@ my $typelist = {
 };
 
 # fest verdrahtet: Ausgabe ist MP3
-my $encoder = $typelist->{'audio/mpeg'};
+#my $encoder = $typelist->{'audio/mpeg'};
+my $encoder = $typelist->{'application/ogg'};
 
 foreach my $file (@ARGV) {
 
@@ -145,10 +147,14 @@ foreach my $file (@ARGV) {
 	print "/tags\n";
 
 
+	my $child;
 	my $newfile = "$file.$encoder->{NEW_EXTENSION}";
 	my @args_dec = &{$handle->{DECODE_TO_WAV}}($file);
 	my @args_enc = &{$encoder->{ENCODE_TO_NATIVE}}($newfile, $tags);
-	my $child;
+	print "newfile: <$newfile>\n";
+	print "decode_args: <@args_dec>\n";
+	print "encode_args: <@args_enc>\n";
+
 	# fork working process
 	unless ($child = fork()) {
 	    # read decoded data from stdin
