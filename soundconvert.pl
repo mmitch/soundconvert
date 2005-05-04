@@ -1,7 +1,13 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.1 2005-05-04 22:52:19 mitch Exp $
-# soundconvert - convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
+# $Id: soundconvert.pl,v 1.2 2005-05-04 22:52:49 mitch Exp $
 #
+# soundconvert
+# convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
+#
+# 2005 (C) by Christian Garbs
+# licensed under GNU GPL
+#
+
 use strict;
 use MP3::Info;            # from libmp3-info-perl
 use Ogg::Vorbis::Header;  # from libogg-vorbis-header-perl
