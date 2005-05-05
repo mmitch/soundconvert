@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.6 2005-05-05 15:45:10 mitch Exp $
+# $Id: soundconvert.pl,v 1.7 2005-05-05 22:16:25 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,6 +12,8 @@ use strict;
 use Audio::FLAC::Header;  # from libaudio-flac-header-perl
 use MP3::Info;            # from libmp3-info-perl
 use Ogg::Vorbis::Header;  # from libogg-vorbis-header-perl
+
+my $multiple_tracks_key = "__multitracks__";
 
 my $typelist = {
 
@@ -145,14 +147,84 @@ my $typelist = {
 	    close TAGS or die "can't close metaflac: $!";
 	},
 	
+    },
+    
+    'audio/gbs' => {
+
+	NAME => 'GBS',
+	NEW_EXTENSION => 'gbs',
+	GET_INFO => sub {
+	    my $file = shift;
+	    my $tags = {};
+	    open GBSINFO, '-|', ('gbsinfo', $file) or die "can't open gbsinfo: $!";
+	    while (my $line = <GBSINFO>) {
+		chomp $line;
+		next unless $line =~ /^([^:]+):\s+"?(.*)"?$/;
+		my ($key, $value) = ($1, $2);
+		if ($key eq 'Title') {
+		    $tags->{TITLE} = $value;
+		} elsif ($key eq 'Author') {
+		    $tags->{ARTIST} = $value;
+		} elsif ($key eq 'Copyright') {
+		    $tags->{COMMENT} = $value;
+		} elsif ($key eq 'Subsongs') {
+		    $tags->{$multiple_tracks_key} = $value;
+		}
+	    }
+	    close GBSINFO or die "can't close gbsinfo: $!";
+	    return $tags;
+	},
+	REMAP_INFO => {
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    my $track = shift;
+	    return ('gbsplay','-o','stdout','-r','44100','-g','0','-f','6','-t','165',$file,$track,$track);
+	},
+	ENCODE_TO_NATIVE => sub {
+	    warn "can't encode to gbs!";
+	    return ('dd','of=/dev/null');
+	},
+	TAG_NATIVE => sub {
+	},
+	
     }
     
 };
+
 
 # fest verdrahtet: Ausgabe ist MP3
 #my $encoder = $typelist->{'audio/flac'};
 my $encoder = $typelist->{'audio/mpeg'};
 #my $encoder = $typelist->{'application/ogg'};
+
+
+sub recode($$$$$$) {
+    my ($handle, $encoder, $file, $newfile, $tags, $track) = @_;
+
+    my $child;
+    my @args_dec = &{$handle->{DECODE_TO_WAV}}($file, $track);
+    my @args_enc = &{$encoder->{ENCODE_TO_NATIVE}}($newfile, $tags);
+    print "newfile: <$newfile>\n";
+    print "decode_args: <@args_dec>\n";
+    print "encode_args: <@args_enc>\n";
+    
+    # fork working process
+    unless ($child = fork()) {
+	# read decoded data from stdin
+	open STDIN, '-|',  @args_dec;
+	# exec ourself to encoding process
+	exec { $args_enc[0] } @args_enc;
+    }
+    if (defined $child) {
+	waitpid $child, 0;
+	# add tags
+	&{$encoder->{TAG_NATIVE}}($newfile, $tags);
+    } else {
+	warn "fork failed: $!";
+    }
+}
+
 
 foreach my $file (@ARGV) {
 
@@ -164,11 +236,13 @@ foreach my $file (@ARGV) {
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
-# Sonderlocke für FLAC (UGLY!!)
+# Sonderlocke für FLAC und GBS (UGLY!!)
     if ($type eq 'application/octet-stream') {
 	if ( ($file =~ /\.flac$/)
 	     or (`file "$file"` =~ /FLAC audio bitstream data/)) {
 	    $type = 'audio/flac';
+	} elsif ($file =~ /\.gbs$/) {
+	    $type = 'audio/gbs';
 	}
     }
 # /TODO
@@ -193,28 +267,19 @@ foreach my $file (@ARGV) {
 	}
 	print "/tags\n";
 
-
-	my $child;
-	my $newfile = "$file.$encoder->{NEW_EXTENSION}";
-	my @args_dec = &{$handle->{DECODE_TO_WAV}}($file);
-	my @args_enc = &{$encoder->{ENCODE_TO_NATIVE}}($newfile, $tags);
-	print "newfile: <$newfile>\n";
-	print "decode_args: <@args_dec>\n";
-	print "encode_args: <@args_enc>\n";
-
-	# fork working process
-	unless ($child = fork()) {
-	    # read decoded data from stdin
-	    open STDIN, '-|',  @args_dec;
-	    # exec ourself to encoding process
-	    exec { $args_enc[0] } @args_enc;
-	}
-	if (defined $child) {
-	    waitpid $child, 0;
-	    # add tags
-	    &{$encoder->{TAG_NATIVE}}($newfile, $tags);
+	if (exists $tags->{$multiple_tracks_key}) {
+	    my $len = length($tags->{$multiple_tracks_key});
+	    $len = 2 if $len<2;
+	    
+	    for my $track (1..$tags->{$multiple_tracks_key}) {
+		my $printtrack = sprintf "%0${len}d", $track;
+		my $newfile = "$file.$printtrack.$encoder->{NEW_EXTENSION}";
+		$tags->{TRACKNUM} = $track;
+		recode($handle, $encoder, $file, $newfile, $tags, $track);
+	    }
 	} else {
-	    warn "fork failed: $!";
+	    my $newfile = "$file.$encoder->{NEW_EXTENSION}";
+	    recode($handle, $encoder, $file, $newfile, $tags, 1);
 	}
 
     } else {
