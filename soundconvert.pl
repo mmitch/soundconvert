@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.5 2005-05-05 15:37:48 mitch Exp $
+# $Id: soundconvert.pl,v 1.6 2005-05-05 15:45:10 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -33,7 +33,8 @@ my $typelist = {
 	    foreach my $key (keys %{$tags}) {
 		delete $tags->{$key} if $tags->{$key} eq '';
 	    }
-	    return $tags;
+	    # capitalize KEYS
+	    return { map { uc($_) => $tags->{$_} } keys %{$tags} };
 	},
 	REMAP_INFO => {
 	},
@@ -66,18 +67,13 @@ my $typelist = {
 	    my $ogg = Ogg::Vorbis::Header->new( shift );
 	    my $tags = {};
 	    foreach my $key ($ogg->comment_tags) {
-		$tags->{$key} = join ' ', $ogg->comment($key);
+		$tags->{uc $key} = join ' ', $ogg->comment($key);
 	    }
 	    return $tags;
 	},
 	REMAP_INFO => {
-	    'artist' => 'ARTIST',
-	    'album' => 'ALBUM',
-	    'tracknumber' => 'TRACKNUM',
-	    'date' => 'YEAR',
-	    'title' => 'TITLE',
-	    'Comment' => 'COMMENT',
-	    'comment' => 'COMMENT',
+	    'TRACKNUMBER' => 'TRACKNUM',
+	    'DATE' => 'YEAR',
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
@@ -121,16 +117,14 @@ my $typelist = {
 	NAME => 'FLAC',
 	NEW_EXTENSION => 'flac',
 	GET_INFO => sub {
-	    return Audio::FLAC::Header->new( shift )->tags;
+	    my $tags = Audio::FLAC::Header->new( shift )->tags;
+	    delete $tags->{VENDOR};
+	    # capitalize KEYS
+	    return { map { uc($_) => $tags->{$_} } keys %{$tags} };
 	},
 	REMAP_INFO => {
-	    'artist' => 'ARTIST',
-	    'album' => 'ALBUM',
-	    'tracknumber' => 'TRACKNUM',
-	    'date' => 'YEAR',
-	    'title' => 'TITLE',
-	    'Comment' => 'COMMENT',
-	    'comment' => 'COMMENT',
+	    'TRACKNUMBER' => 'TRACKNUM',
+	    'DATE' => 'YEAR',
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
@@ -157,8 +151,8 @@ my $typelist = {
 
 # fest verdrahtet: Ausgabe ist MP3
 #my $encoder = $typelist->{'audio/flac'};
-#my $encoder = $typelist->{'audio/mpeg'};
-my $encoder = $typelist->{'application/ogg'};
+my $encoder = $typelist->{'audio/mpeg'};
+#my $encoder = $typelist->{'application/ogg'};
 
 foreach my $file (@ARGV) {
 
