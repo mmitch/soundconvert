@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.7 2005-05-05 22:16:25 mitch Exp $
+# $Id: soundconvert.pl,v 1.8 2005-05-05 22:19:37 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -159,7 +159,7 @@ my $typelist = {
 	    open GBSINFO, '-|', ('gbsinfo', $file) or die "can't open gbsinfo: $!";
 	    while (my $line = <GBSINFO>) {
 		chomp $line;
-		next unless $line =~ /^([^:]+):\s+"?(.*)"?$/;
+		next unless $line =~ /^([^:]+):\s+"?(.*?)"?$/;
 		my ($key, $value) = ($1, $2);
 		if ($key eq 'Title') {
 		    $tags->{TITLE} = $value;
