@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.4 2005-05-04 23:28:52 mitch Exp $
+# $Id: soundconvert.pl,v 1.5 2005-05-05 15:37:48 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -88,14 +88,16 @@ my $typelist = {
 	    my $tags = \%{shift()};
 	    my @call = ('oggenc',
 			'-Q',       # quiet
-			'-q','6',   # quality
-			'-d',$tags->{'YEAR'},
-			'-N',$tags->{'TRACKNUM'},
-			'-t',$tags->{'TITLE'},
-			'-l',$tags->{'ALBUM'},
-			'-a',$tags->{'ARTIST'},
-			'-G',$tags->{'GENRE'},
+			'-q','6'   # quality
 			);
+
+	    push @call, ('-d',$tags->{'YEAR'}) if exists $tags->{'YEAR'};
+	    push @call, ('-N',$tags->{'TRACKNUM'}) if exists $tags->{'TRACKNUM'};
+	    push @call, ('-t',$tags->{'TITLE'}) if exists $tags->{'TITLE'};
+	    push @call, ('-l',$tags->{'ALBUM'}) if exists $tags->{'ALBUM'};
+	    push @call, ('-a',$tags->{'ARTIST'}) if exists $tags->{'ARTIST'};
+	    push @call, ('-G',$tags->{'GENRE'}) if exists $tags->{'GENRE'};
+
 	    delete $tags->{'YEAR'};
 	    delete $tags->{'TRACKNUM'};
 	    delete $tags->{'TITLE'};
@@ -155,8 +157,8 @@ my $typelist = {
 
 # fest verdrahtet: Ausgabe ist MP3
 #my $encoder = $typelist->{'audio/flac'};
-my $encoder = $typelist->{'audio/mpeg'};
-#my $encoder = $typelist->{'application/ogg'};
+#my $encoder = $typelist->{'audio/mpeg'};
+my $encoder = $typelist->{'application/ogg'};
 
 foreach my $file (@ARGV) {
 
