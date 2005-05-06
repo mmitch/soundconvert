@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.11 2005-05-06 17:27:52 mitch Exp $
+# $Id: soundconvert.pl,v 1.12 2005-05-06 17:39:11 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -10,7 +10,7 @@
 
 use strict;
 
-my $version = '$Revision: 1.11 $';
+my $version = '$Revision: 1.12 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -40,8 +40,8 @@ my $typelist = {
 		warn "MP3 unavailable: Perl module MP3::Info not found";
 		return 0;
 	    }
-	    if (`which toolame` eq '') {
-		warn "MP3 unavailable: binary toolame not found";
+	    if (`which lame` eq '' and `which toolame` eq '') {
+		warn "MP3 unavailable: neither binary lame nor binary toolame not found";
 		return 0;
 	    }
 	    if (`which mpg123` eq '') {
@@ -68,7 +68,11 @@ my $typelist = {
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
 	    my $tags = shift;
-	    return ('toolame',
+	    my $binary = 'lame';
+	    if (`which $binary` eq '') {
+		$binary = 'toolame';
+	    }
+	    return ($binary,
 		    '-b','128',
 		    '-',
 		    $file
