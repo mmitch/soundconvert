@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.8 2005-05-05 22:19:37 mitch Exp $
+# $Id: soundconvert.pl,v 1.9 2005-05-06 16:52:23 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,9 +9,6 @@
 #
 
 use strict;
-use Audio::FLAC::Header;  # from libaudio-flac-header-perl
-use MP3::Info;            # from libmp3-info-perl
-use Ogg::Vorbis::Header;  # from libogg-vorbis-header-perl
 
 my $multiple_tracks_key = "__multitracks__";
 
@@ -19,6 +16,7 @@ my $typelist = {
 
     # NAME              (scalar)
     # NEW_EXTENSION     (scalar)
+    # CHECK_FOR_TOOLS  (coderef returning scalar)
     # GET_INFO          (coderef returning hashref)
     # REMAP_INFO        (hashref)
     # DECODE_TO_WAV     (coderef returning array)
@@ -29,6 +27,26 @@ my $typelist = {
 
 	NAME => 'MP3',
 	NEW_EXTENSION => 'mp3',
+	CHECK_FOR_TOOLS => sub {
+	    my $have_mp3_info;
+	    BEGIN {
+		eval { require MP3::Info };
+		$have_mp3_info = not $@;
+	    }
+	    if (not $have_mp3_info) {
+		warn "MP3 unavailable: Perl module MP3::Info not found";
+		return 0;
+	    }
+	    if (`which toolame` eq '') {
+		warn "MP3 unavailable: binary toolame not found";
+		return 0;
+	    }
+	    if (`which mpg123` eq '') {
+		warn "MP3 unavailable: binary mpg123 not found";
+		return 0;
+	    }
+	    return 1;
+	},
 	GET_INFO => sub {
 	    my $tags = get_mp3tag( shift );
 	    delete $tags->{TAGVERSION};
@@ -65,6 +83,26 @@ my $typelist = {
 
 	NAME => 'OGG',
 	NEW_EXTENSION => 'ogg',
+	CHECK_FOR_TOOLS => sub {
+	    my $have_ogg_vorbis_header;
+	    BEGIN {
+		eval { require Ogg::Vorbis::Header };
+		$have_ogg_vorbis_header = not $@;
+	    }
+	    if (not $have_ogg_vorbis_header) {
+		warn "OGG unavailable: Perl module Ogg::Vorbis::Header not found";
+		return 0;
+	    }
+	    if (`which oggenc` eq '') {
+		warn "OGG unavailable: binary oggenc not found";
+		return 0;
+	    }
+	    if (`which oggdec` eq '') {
+		warn "OGG unavailable: binary oggdec not found";
+		return 0;
+	    }
+	    return 1;
+	},
 	GET_INFO => sub {
 	    my $ogg = Ogg::Vorbis::Header->new( shift );
 	    my $tags = {};
@@ -118,6 +156,26 @@ my $typelist = {
 
 	NAME => 'FLAC',
 	NEW_EXTENSION => 'flac',
+	CHECK_FOR_TOOLS => sub {
+	    my $have_audio_flac_header;
+	    BEGIN {
+		eval { require Audio::FLAC::Header };
+		$have_audio_flac_header = not $@;
+	    }
+	    if (not $have_audio_flac_header) {
+		warn "FLAC unavailable: Perl module Audio::FLAC::Header not found";
+		return 0;
+	    }
+	    if (`which flac` eq '') {
+		warn "FLAC unavailable: binary flac not found";
+		return 0;
+	    }
+	    if (`which metaflac` eq '') {
+		warn "FLAC unavailable: binary metaflac not found";
+		return 0;
+	    }
+	    return 1;
+	},
 	GET_INFO => sub {
 	    my $tags = Audio::FLAC::Header->new( shift )->tags;
 	    delete $tags->{VENDOR};
@@ -153,6 +211,17 @@ my $typelist = {
 
 	NAME => 'GBS',
 	NEW_EXTENSION => 'gbs',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which gbsplay` eq '') {
+		warn "GBS unavailable: binary gbsplay not found";
+		return 0;
+	    }
+	    if (`which gbsinfo` eq '') {
+		warn "GBS unavailable: binary gbsinfo not found";
+		return 0;
+	    }
+	    return 1;
+	},
 	GET_INFO => sub {
 	    my $file = shift;
 	    my $tags = {};
@@ -225,6 +294,11 @@ sub recode($$$$$$) {
     }
 }
 
+
+# check available backends
+foreach my $type (keys %{$typelist}) {
+    delete $typelist->{$type} unless &{$typelist->{$type}->{CHECK_FOR_TOOLS}}();
+}
 
 foreach my $file (@ARGV) {
 
