@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.10 2005-05-06 17:26:43 mitch Exp $
+# $Id: soundconvert.pl,v 1.11 2005-05-06 17:27:52 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -10,7 +10,7 @@
 
 use strict;
 
-my $version = '$Revision: 1.10 $';
+my $version = '$Revision: 1.11 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -346,7 +346,7 @@ foreach my $file (@ARGV) {
     print "filename: <$file>\n";
 
     # determine filetype
-    `file -i "$file"` =~ /(\S+)$/;
+    `file -i -- "$file"` =~ /(\S+)$/;
     my $type = $1;
     print "filetype: <$type>\n";
 
