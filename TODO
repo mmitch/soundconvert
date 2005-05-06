@@ -1,7 +1,6 @@
-$Id: TODO,v 1.1 2005-05-06 16:44:20 mitch Exp $
+$Id: TODO,v 1.2 2005-05-06 17:10:31 mitch Exp $
 
 - add --version option
-- add tool detection
 - make output format selectable
 - add quiet mode
 - make distribution package
