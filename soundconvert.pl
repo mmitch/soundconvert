@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.12 2005-05-06 17:39:11 mitch Exp $
+# $Id: soundconvert.pl,v 1.13 2005-05-06 17:41:54 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -10,7 +10,7 @@
 
 use strict;
 
-my $version = '$Revision: 1.12 $';
+my $version = '$Revision: 1.13 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -33,7 +33,7 @@ my $typelist = {
 	CHECK_FOR_TOOLS => sub {
 	    my $have_mp3_info;
 	    BEGIN {
-		eval { require MP3::Info };
+		eval { use MP3::Info };
 		$have_mp3_info = not $@;
 	    }
 	    if (not $have_mp3_info) {
@@ -93,7 +93,7 @@ my $typelist = {
 	CHECK_FOR_TOOLS => sub {
 	    my $have_ogg_vorbis_header;
 	    BEGIN {
-		eval { require Ogg::Vorbis::Header };
+		eval { use Ogg::Vorbis::Header };
 		$have_ogg_vorbis_header = not $@;
 	    }
 	    if (not $have_ogg_vorbis_header) {
@@ -166,7 +166,7 @@ my $typelist = {
 	CHECK_FOR_TOOLS => sub {
 	    my $have_audio_flac_header;
 	    BEGIN {
-		eval { require Audio::FLAC::Header };
+		eval { use Audio::FLAC::Header };
 		$have_audio_flac_header = not $@;
 	    }
 	    if (not $have_audio_flac_header) {
