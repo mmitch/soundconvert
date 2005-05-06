@@ -1,6 +1,5 @@
-$Id: TODO,v 1.3 2005-05-06 17:26:43 mitch Exp $
+$Id: TODO,v 1.4 2005-05-06 17:54:23 mitch Exp $
 
 - add quiet mode
-- make distribution package
 - make Debian package
 
