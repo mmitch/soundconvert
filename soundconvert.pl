@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.13 2005-05-06 17:41:54 mitch Exp $
+# $Id: soundconvert.pl,v 1.14 2005-05-06 17:58:34 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
 #
-# 2005 (C) by Christian Garbs
+# 2005 (C) by Christian Garbs <mitch@cgarbs.de>
 # licensed under GNU GPL
 #
 
 use strict;
 
-my $version = '$Revision: 1.13 $';
+my $version = '$Revision: 1.14 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
