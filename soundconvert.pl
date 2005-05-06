@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.9 2005-05-06 16:52:23 mitch Exp $
+# $Id: soundconvert.pl,v 1.10 2005-05-06 17:26:43 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,6 +9,9 @@
 #
 
 use strict;
+
+my $version = '$Revision: 1.10 $';
+$version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
 
@@ -261,12 +264,55 @@ my $typelist = {
     
 };
 
+# check available backends
+foreach my $type (keys %{$typelist}) {
+    delete $typelist->{$type} unless &{$typelist->{$type}->{CHECK_FOR_TOOLS}}();
+}
 
 # fest verdrahtet: Ausgabe ist MP3
 #my $encoder = $typelist->{'audio/flac'};
 my $encoder = $typelist->{'audio/mpeg'};
 #my $encoder = $typelist->{'application/ogg'};
 
+sub helptext() {
+    print <<"EOF";
+soundconvert $version
+
+Usage:  soundconvert.pl [-h] [-o format] infile [infile [...]]
+  -h          print help text and exit
+  -o format   choose output format (default: $encoder->{NAME})
+              available formats are:
+EOF
+    ;
+    foreach my $type (keys %{$typelist}) {
+	print "              ". lc $typelist->{$type}->{NAME} ."\n";
+    }
+}
+
+if (not defined $ARGV[0] or $ARGV[0] eq '-h') {
+    helptext();
+    exit 0;
+}
+
+sub typelist_find($)
+# search a typelist entry by NAME
+{
+    my $name = lc shift;
+    foreach my $type (keys %{$typelist}) {
+	if (lc $typelist->{$type}->{NAME} eq $name) {
+	    return $typelist->{$type};
+	}
+    }
+    return 0;
+}
+
+if ($ARGV[0] eq '-o') {
+    shift @ARGV;
+    my $type = shift @ARGV;
+    die "no output format given with -o" unless defined $type;
+    die "output format not available" unless typelist_find($type);
+    $encoder = typelist_find($type);
+}
 
 sub recode($$$$$$) {
     my ($handle, $encoder, $file, $newfile, $tags, $track) = @_;
@@ -294,11 +340,6 @@ sub recode($$$$$$) {
     }
 }
 
-
-# check available backends
-foreach my $type (keys %{$typelist}) {
-    delete $typelist->{$type} unless &{$typelist->{$type}->{CHECK_FOR_TOOLS}}();
-}
 
 foreach my $file (@ARGV) {
 
