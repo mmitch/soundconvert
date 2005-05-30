@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005-05-06 17:54:23 mitch Exp $
+# $Id: Makefile,v 1.2 2005-05-30 18:22:58 mitch Exp $
 
 PKGNAME=soundconvert
 VERSION=$(shell grep \$$Id: soundconvert.pl \
@@ -32,5 +32,5 @@ dist:	clean # generate-manpages
 	mkdir $(DISTDIR)
 	cp $(FILES) $(DISTDIR)
 #	cp $(MANDIR)/* $(DISTDIR)
-	tar -c $(DISTDIR) -zvf $(DISTFILE)
+	tar -czvf $(DISTFILE) $(DISTDIR)
 	rm -rf $(DISTDIR)
