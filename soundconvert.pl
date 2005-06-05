@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.14 2005-05-06 17:58:34 mitch Exp $
+# $Id: soundconvert.pl,v 1.15 2005-06-05 11:00:46 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -10,7 +10,7 @@
 
 use strict;
 
-my $version = '$Revision: 1.14 $';
+my $version = '$Revision: 1.15 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -19,7 +19,7 @@ my $typelist = {
 
     # NAME              (scalar)
     # NEW_EXTENSION     (scalar)
-    # CHECK_FOR_TOOLS  (coderef returning scalar)
+    # CHECK_FOR_TOOLS   (coderef returning scalar)
     # GET_INFO          (coderef returning hashref)
     # REMAP_INFO        (hashref)
     # DECODE_TO_WAV     (coderef returning array)
@@ -159,6 +159,36 @@ my $typelist = {
 	},
     },
 
+    'audio/x-mod' => {
+
+	NAME => 'MOD',
+	NEW_EXTENSION => 'ogg',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which mikmod` eq '') {
+		warn "MOD unavailable: binary mikmod not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    # no tags yet
+	    return {};
+	},
+	REMAP_INFO => {
+	    # no tags yet
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    return ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
+	},
+	ENCODE_TO_NATIVE => sub {
+	    warn "can't encode to mod!";
+	    return ('dd','of=/dev/null');
+	},
+	TAG_NATIVE => sub {
+	},
+    },
+
     'audio/flac' => {
 
 	NAME => 'FLAC',
@@ -265,8 +295,12 @@ my $typelist = {
 	},
 	
     }
-    
+
 };
+
+### BIG HACK: zip might contain mod :-)
+$typelist->{'application/x-zip'} = $typelist->{'audio/x-mod'};
+    
 
 # check available backends
 foreach my $type (keys %{$typelist}) {
