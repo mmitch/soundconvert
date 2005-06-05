@@ -1,5 +1,5 @@
-$Id: TODO,v 1.4 2005-05-06 17:54:23 mitch Exp $
+$Id: TODO,v 1.5 2005-06-05 11:01:12 mitch Exp $
 
 - add quiet mode
-- make Debian package
-
+- add MIDI input encoding (which engine?)
+- add TAG support for MODs (with manual editing?)
