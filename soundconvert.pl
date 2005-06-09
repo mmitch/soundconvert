@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.16 2005-06-09 16:03:45 mitch Exp $
+# $Id: soundconvert.pl,v 1.17 2005-06-09 16:04:52 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,15 +9,17 @@
 #
 
 use strict;
-use File::Temp qw/ tempdir /;
+#use File::Temp qw/ tempdir /;
+use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.16 $';
+my $version = '$Revision: 1.17 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
 
 my $typelist = {
 
+    # TYPE              scalar 'sound'
     # NAME              (scalar)
     # NEW_EXTENSION     (scalar)
     # CHECK_FOR_TOOLS   (coderef returning scalar)
@@ -300,13 +302,123 @@ my $typelist = {
 	TAG_NATIVE => sub {
 	},
 	
+    },
+
+    # TYPE              scalar 'archive'
+    # NAME              (scalar)
+    # CHECK_FOR_TOOLS   (coderef returning scalar)
+    # UNARCHIVE         (coderef returning array)
+
+    'application/x-tar' => {
+
+	TYPE => 'archive',
+	NAME => 'TAR',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which tar` eq '') {
+		warn "TAR unavailable: binary tar not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	UNARCHIVE => sub {
+	    my $file = shift;
+	    my @newfiles;
+	    open TARLIST, "tar -tf $file |" or die "can't open tar: $1";
+	    while (my $line = <TARLIST>) {
+		chomp $line;
+		my $complete = $line;
+		my ($filename, $dirname ) = fileparse( $complete, () );
+		if ($dirname ne './') {
+		    warn "TAR: no subdir support yet, skipping: $complete\n";
+		} else {
+		    system 'tar','-xf',$file,$filename;
+		}
+		push @newfiles, $filename;
+	    }
+	    close TARLIST;
+	    return @newfiles;
+	}
+
+    },
+	
+    'application/gzip' => {
+
+	TYPE => 'archive',
+	NAME => 'GZIP',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which gunzip` eq '') {
+		warn "GZIP unavailable: binary gunzip not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	UNARCHIVE => sub {
+	    my $file = shift;
+	    my $newfile = $file;
+	    $newfile .= '.gunzip' unless ($newfile =~ s/.gz$//);
+	    
+	    system "gunzip < $file > $newfile";
+	    
+	    return ($newfile);
+	},
+	
+    },
+
+    'application/x-bzip2' => {
+
+	TYPE => 'archive',
+	NAME => 'BZIP2',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which bunzip2` eq '') {
+		warn "BZIP2 unavailable: binary bunzip2 not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	UNARCHIVE => sub {
+	    my $file = shift;
+	    my $newfile = $file;
+	    $newfile .= '.bunzip2' unless ($newfile =~ s/.bz2$//);
+	    
+	    system "bunzip2 < $file > $newfile";
+	    
+	    return ($newfile);
+	}
+	
+    },
+
+    'application/x-zip' => {
+
+	TYPE => 'archive',
+	NAME => 'ZIP',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which unzip` eq '') {
+		warn "ZIP unavailable: binary unzip not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	UNARCHIVE => sub {
+	    my $file = shift;
+	    my @newfiles;
+	    open UNZIPLIST, "unzip -Z -1 $file |" or die "can't open unzip: $1";
+	    while (my $line = <UNZIPLIST>) {
+		chomp $line;
+		my $filename = $line;
+		system 'unzip','-n','-j',$file,$filename;
+		push @newfiles, $filename;
+	    }
+	    close UNZIPLIST;
+	    return @newfiles;
+	}
+	
     }
 
 };
 
 
 # get temporary directory for archive extraction
-my $tempdir = tempdir( TMPDIR => 1, CLEANUP => 1);
+#my $tempdir = tempdir( TMPDIR => 1, CLEANUP => 1);
 
 # check available backends
 foreach my $type (keys %{$typelist}) {
@@ -390,7 +502,7 @@ if ($ARGV[0] eq '-o') {
 }
 
 
-my @files = @ARGV;
+my @files = map { { NAME=> $_, DELETE => 0 } } @ARGV;
 
 sub process_soundfile($$)
 # process a soundfile (convert it)
@@ -429,26 +541,58 @@ sub process_soundfile($$)
     }
 }
 
+sub process_archive($$)
+# process an archive (extract it)
+{
+    my ($file, $handle) = @_;
+
+    my @newfilenames = $handle->{UNARCHIVE}($file);
+
+    foreach my $newfilename (@newfilenames) {
+	unshift @files, { NAME => $newfilename, DELETE => 1 };
+    }
+}
+
 
 sub process_file($)
 # process a given file
 {
     my $file = shift;
+    my $filename = $file->{NAME};
 
-    print "filename: <$file>\n";
+    print "filename: <$filename>\n";
+
+    if (-d $filename) {
+	warn "file <$filename> is a directory...skipping.\n";
+	return;
+    }
+    if (! -e $filename) {
+	warn "file <$filename> does not exist...skipping.\n";
+	return;
+    }
+    if (! -r $filename) {
+	warn "file <$filename> is not readable...skipping.\n";
+	return;
+    }
 
     # determine filetype
-    `file -i -- "$file"` =~ /(\S+)$/;
+    `file -i -- "$filename"` =~ /(\S+)(, .+)?$/;
     my $type = $1;
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
-# Sonderlocke für FLAC und GBS (UGLY!!)
+# Sonderlocken fürk alles, was als application/octet-stream gemeldet wird
     if ($type eq 'application/octet-stream') {
-	if ( ($file =~ /\.flac$/)
-	     or (`file "$file"` =~ /FLAC audio bitstream data/)) {
+	if ( (`file -- "$filename"` =~ /gzip compressed data/)
+	     or ($filename =~ /\.gz$/ ) ) {
+	    $type = 'application/gzip';
+	} elsif ( (`file -- "$filename"` =~ /ScreamTracker III Module sound data/)
+		  or ($filename =~ /\.s3m$/ ) ) {
+	    $type = 'audio/x-mod';
+	} elsif ( (`file -- "$filename"` =~ /FLAC audio bitstream data/)
+		  or ($filename =~ /\.flac$/ ) ) {
 	    $type = 'audio/flac';
-	} elsif ($file =~ /\.gbs$/) {
+	} elsif ($filename =~ /\.gbs$/) {
 	    $type = 'audio/gbs';
 	}
     }
@@ -459,9 +603,9 @@ sub process_file($)
 	my $handle = $typelist->{$type};
 	print "type: $handle->{NAME}\n";
 	if ($handle->{TYPE} eq 'sound') {
-	    process_soundfile($file, $handle);
+	    process_soundfile($filename, $handle);
 	} elsif ($handle->{TYPE} eq 'archive') {
-	    process_archive($file, $handle);
+	    process_archive($filename, $handle);
 	} else {
 	    die "unkown handler type $handle->{TYPE}";
 	}
@@ -470,6 +614,11 @@ sub process_file($)
 	print "no handler found, skipping...\n";
     }
     print "\n";
+
+    if ($file->{DELETE}) {
+	print "deleting temporary file <$filename>\n";
+	unlink $filename;
+    }
 }
 
 while (my $file = shift @files) {

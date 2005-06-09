@@ -1,5 +1,13 @@
-$Id: TODO,v 1.5 2005-06-05 11:01:12 mitch Exp $
+$Id: TODO,v 1.6 2005-06-09 16:04:52 mitch Exp $
 
 - add quiet mode
 - add MIDI input encoding (which engine?)
 - add TAG support for MODs (with manual editing?)
+
+- unique filename for gunzip+bunzip2 (check if file exists!)
+- tar --no-overwrite
+- tar subdirectories
+- (un)rar support
+- use zip if unzip unavailable
+
+- OGG encoding problems with raw input
