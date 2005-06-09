@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.15 2005-06-05 11:00:46 mitch Exp $
+# $Id: soundconvert.pl,v 1.16 2005-06-09 16:03:45 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,8 +9,9 @@
 #
 
 use strict;
+use File::Temp qw/ tempdir /;
 
-my $version = '$Revision: 1.15 $';
+my $version = '$Revision: 1.16 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -28,12 +29,13 @@ my $typelist = {
 
     'audio/mpeg' => {
 
+	TYPE => 'sound',
 	NAME => 'MP3',
 	NEW_EXTENSION => 'mp3',
 	CHECK_FOR_TOOLS => sub {
 	    my $have_mp3_info;
 	    BEGIN {
-		eval { use MP3::Info };
+		eval { require MP3::Info; };
 		$have_mp3_info = not $@;
 	    }
 	    if (not $have_mp3_info) {
@@ -51,7 +53,7 @@ my $typelist = {
 	    return 1;
 	},
 	GET_INFO => sub {
-	    my $tags = get_mp3tag( shift );
+	    my $tags = MP3::Info::get_mp3tag( shift );
 	    delete $tags->{TAGVERSION};
 	    foreach my $key (keys %{$tags}) {
 		delete $tags->{$key} if $tags->{$key} eq '';
@@ -81,19 +83,20 @@ my $typelist = {
 	TAG_NATIVE => sub {
 	    my $file = shift;
 	    my $tags = shift;
-	    set_mp3tag( $file, $tags );
+	    MP3::Info::set_mp3tag( $file, $tags );
 	},
 
     },
 
     'application/ogg' => {
 
+	TYPE => 'sound',
 	NAME => 'OGG',
 	NEW_EXTENSION => 'ogg',
 	CHECK_FOR_TOOLS => sub {
 	    my $have_ogg_vorbis_header;
 	    BEGIN {
-		eval { use Ogg::Vorbis::Header };
+		eval { require Ogg::Vorbis::Header; };
 		$have_ogg_vorbis_header = not $@;
 	    }
 	    if (not $have_ogg_vorbis_header) {
@@ -161,6 +164,7 @@ my $typelist = {
 
     'audio/x-mod' => {
 
+	TYPE => 'sound',
 	NAME => 'MOD',
 	NEW_EXTENSION => 'ogg',
 	CHECK_FOR_TOOLS => sub {
@@ -191,12 +195,13 @@ my $typelist = {
 
     'audio/flac' => {
 
+	TYPE => 'sound',
 	NAME => 'FLAC',
 	NEW_EXTENSION => 'flac',
 	CHECK_FOR_TOOLS => sub {
 	    my $have_audio_flac_header;
 	    BEGIN {
-		eval { use Audio::FLAC::Header };
+		eval { require Audio::FLAC::Header; };
 		$have_audio_flac_header = not $@;
 	    }
 	    if (not $have_audio_flac_header) {
@@ -246,6 +251,7 @@ my $typelist = {
     
     'audio/gbs' => {
 
+	TYPE => 'sound',
 	NAME => 'GBS',
 	NEW_EXTENSION => 'gbs',
 	CHECK_FOR_TOOLS => sub {
@@ -298,9 +304,9 @@ my $typelist = {
 
 };
 
-### BIG HACK: zip might contain mod :-)
-$typelist->{'application/x-zip'} = $typelist->{'audio/x-mod'};
-    
+
+# get temporary directory for archive extraction
+my $tempdir = tempdir( TMPDIR => 1, CLEANUP => 1);
 
 # check available backends
 foreach my $type (keys %{$typelist}) {
@@ -344,15 +350,9 @@ sub typelist_find($)
     return 0;
 }
 
-if ($ARGV[0] eq '-o') {
-    shift @ARGV;
-    my $type = shift @ARGV;
-    die "no output format given with -o" unless defined $type;
-    die "output format not available" unless typelist_find($type);
-    $encoder = typelist_find($type);
-}
-
-sub recode($$$$$$) {
+sub recode($$$$$$)
+# reencoding and tagging
+{
     my ($handle, $encoder, $file, $newfile, $tags, $track) = @_;
 
     my $child;
@@ -379,7 +379,61 @@ sub recode($$$$$$) {
 }
 
 
-foreach my $file (@ARGV) {
+
+
+if ($ARGV[0] eq '-o') {
+    shift @ARGV;
+    my $type = shift @ARGV;
+    die "no output format given with -o" unless defined $type;
+    die "output format not available" unless typelist_find($type);
+    $encoder = typelist_find($type);
+}
+
+
+my @files = @ARGV;
+
+sub process_soundfile($$)
+# process a soundfile (convert it)
+{
+    my ($file, $handle) = @_;
+
+    # get comments and tags
+    my $tags = &{$handle->{GET_INFO}}($file);
+	
+    # remap comments
+    foreach my $key (keys %{$handle->{REMAP_INFO}}) {
+	if (exists $tags->{$key}) {
+	    $tags->{$handle->{REMAP_INFO}->{$key}} = $tags->{$key};
+	    delete $tags->{$key};
+	}
+    }
+    print "tags:\n";
+    foreach my $tag (keys %{$tags}) {
+	print "\t<$tag> => <$tags->{$tag}>\n";
+    }
+    print "/tags\n";
+    
+    if (exists $tags->{$multiple_tracks_key}) {
+	my $len = length($tags->{$multiple_tracks_key});
+	$len = 2 if $len<2;
+	
+	for my $track (1..$tags->{$multiple_tracks_key}) {
+	    my $printtrack = sprintf "%0${len}d", $track;
+	    my $newfile = "$file.$printtrack.$encoder->{NEW_EXTENSION}";
+	    $tags->{TRACKNUM} = $track;
+	    recode($handle, $encoder, $file, $newfile, $tags, $track);
+	}
+    } else {
+	my $newfile = "$file.$encoder->{NEW_EXTENSION}";
+	recode($handle, $encoder, $file, $newfile, $tags, 1);
+    }
+}
+
+
+sub process_file($)
+# process a given file
+{
+    my $file = shift;
 
     print "filename: <$file>\n";
 
@@ -401,42 +455,23 @@ foreach my $file (@ARGV) {
 # /TODO
 
     if (exists $typelist->{$type}) {
+
 	my $handle = $typelist->{$type};
 	print "type: $handle->{NAME}\n";
-
-	# get comments and tags
-	my $tags = &{$handle->{GET_INFO}}($file);
-	
-	# remap comments
-	foreach my $key (keys %{$handle->{REMAP_INFO}}) {
-	    if (exists $tags->{$key}) {
-		$tags->{$handle->{REMAP_INFO}->{$key}} = $tags->{$key};
-		delete $tags->{$key};
-	    }
-	}
-	print "tags:\n";
-	foreach my $tag (keys %{$tags}) {
-	    print "\t<$tag> => <$tags->{$tag}>\n";
-	}
-	print "/tags\n";
-
-	if (exists $tags->{$multiple_tracks_key}) {
-	    my $len = length($tags->{$multiple_tracks_key});
-	    $len = 2 if $len<2;
-	    
-	    for my $track (1..$tags->{$multiple_tracks_key}) {
-		my $printtrack = sprintf "%0${len}d", $track;
-		my $newfile = "$file.$printtrack.$encoder->{NEW_EXTENSION}";
-		$tags->{TRACKNUM} = $track;
-		recode($handle, $encoder, $file, $newfile, $tags, $track);
-	    }
+	if ($handle->{TYPE} eq 'sound') {
+	    process_soundfile($file, $handle);
+	} elsif ($handle->{TYPE} eq 'archive') {
+	    process_archive($file, $handle);
 	} else {
-	    my $newfile = "$file.$encoder->{NEW_EXTENSION}";
-	    recode($handle, $encoder, $file, $newfile, $tags, 1);
+	    die "unkown handler type $handle->{TYPE}";
 	}
-
+	
     } else {
 	print "no handler found, skipping...\n";
     }
     print "\n";
+}
+
+while (my $file = shift @files) {
+    process_file($file);
 }
