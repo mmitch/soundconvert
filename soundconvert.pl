@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.17 2005-06-09 16:04:52 mitch Exp $
+# $Id: soundconvert.pl,v 1.18 2005-06-10 22:14:50 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.17 $';
+my $version = '$Revision: 1.18 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -168,7 +168,7 @@ my $typelist = {
 
 	TYPE => 'sound',
 	NAME => 'MOD',
-	NEW_EXTENSION => 'ogg',
+	NEW_EXTENSION => '',
 	CHECK_FOR_TOOLS => sub {
 	    if (`which mikmod` eq '') {
 		warn "MOD unavailable: binary mikmod not found";
@@ -190,6 +190,41 @@ my $typelist = {
 	ENCODE_TO_NATIVE => sub {
 	    warn "can't encode to mod!";
 	    return ('dd','of=/dev/null');
+	},
+	TAG_NATIVE => sub {
+	},
+    },
+
+    'audio/x-wav' => {
+
+	TYPE => 'sound',
+	NAME => 'WAV',
+	NEW_EXTENSION => 'wav',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which dd` eq '') {
+		warn "WAV unavailable: binary dd not found";
+		return 0;
+	    }
+	    if (`which sox` eq '') {
+		warn "WAV unavailable: binary sox not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    # no tags
+	    return {};
+	},
+	REMAP_INFO => {
+	    # no tags
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    return ('sox',$file,'-t','.wav','-r','44100','-w','-c','2','-s','-');
+	},
+	ENCODE_TO_NATIVE => sub {
+	    my $file = shift;
+	    return ('dd','bs=2048',"of=$file");
 	},
 	TAG_NATIVE => sub {
 	},
