@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.18 2005-06-10 22:14:50 mitch Exp $
+# $Id: soundconvert.pl,v 1.19 2005-06-10 22:17:55 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.18 $';
+my $version = '$Revision: 1.19 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -476,7 +476,9 @@ Usage:  soundconvert.pl [-h] [-o format] infile [infile [...]]
 EOF
     ;
     foreach my $type (keys %{$typelist}) {
-	print "              ". lc $typelist->{$type}->{NAME} ."\n";
+	if ($typelist->{$type}->{TYPE} eq 'sound') {
+	    print "              ". lc $typelist->{$type}->{NAME} ."\n";
+	}
     }
 }
 
@@ -533,6 +535,7 @@ if ($ARGV[0] eq '-o') {
     my $type = shift @ARGV;
     die "no output format given with -o" unless defined $type;
     die "output format not available" unless typelist_find($type);
+    die "output format not available" unless typelist_find($type)->{TYPE} eq 'sound';
     $encoder = typelist_find($type);
 }
 
