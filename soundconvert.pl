@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.19 2005-06-10 22:17:55 mitch Exp $
+# $Id: soundconvert.pl,v 1.20 2005-06-10 22:54:10 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,10 +12,12 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.19 $';
+my $version = '$Revision: 1.20 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
+
+my $global_output_is_raw = 0;  # another dirty hack, global variable
 
 my $typelist = {
 
@@ -25,6 +27,7 @@ my $typelist = {
     # CHECK_FOR_TOOLS   (coderef returning scalar)
     # GET_INFO          (coderef returning hashref)
     # REMAP_INFO        (hashref)
+    # OUTPUT_IS_RAW     (scalar) optional
     # DECODE_TO_WAV     (coderef returning array)
     # ENCODE_TO_NATIVE  (coderef returning array)
     # TAG_NATIVE        (coderef)
@@ -138,6 +141,10 @@ my $typelist = {
 			'-Q',       # quiet
 			'-q','6'   # quality
 			);
+	    
+	    if ($global_output_is_raw) {
+		push @call, '-r';
+	    }
 
 	    push @call, ('-d',$tags->{'YEAR'}) if exists $tags->{'YEAR'};
 	    push @call, ('-N',$tags->{'TRACKNUM'}) if exists $tags->{'TRACKNUM'};
@@ -187,6 +194,7 @@ my $typelist = {
 	    my $file = shift;
 	    return ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
 	},
+	OUTPUT_IS_RAW => 1,
 	ENCODE_TO_NATIVE => sub {
 	    warn "can't encode to mod!";
 	    return ('dd','of=/dev/null');
@@ -330,6 +338,7 @@ my $typelist = {
 	    my $track = shift;
 	    return ('gbsplay','-o','stdout','-r','44100','-g','0','-f','6','-t','165',$file,$track,$track);
 	},
+	OUTPUT_IS_RAW => 1,
 	ENCODE_TO_NATIVE => sub {
 	    warn "can't encode to gbs!";
 	    return ('dd','of=/dev/null');
@@ -506,6 +515,7 @@ sub recode($$$$$$)
 
     my $child;
     my @args_dec = &{$handle->{DECODE_TO_WAV}}($file, $track);
+    $global_output_is_raw = $handle->{OUTPUT_IS_RAW};
     my @args_enc = &{$encoder->{ENCODE_TO_NATIVE}}($newfile, $tags);
     print "newfile: <$newfile>\n";
     print "decode_args: <@args_dec>\n";
@@ -619,7 +629,7 @@ sub process_file($)
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
-# Sonderlocken fürk alles, was als application/octet-stream gemeldet wird
+# Sonderlocken für alles, was als application/octet-stream gemeldet wird
     if ($type eq 'application/octet-stream') {
 	if ( (`file -- "$filename"` =~ /gzip compressed data/)
 	     or ($filename =~ /\.gz$/ ) ) {

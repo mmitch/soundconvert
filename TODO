@@ -1,4 +1,4 @@
-$Id: TODO,v 1.6 2005-06-09 16:04:52 mitch Exp $
+$Id: TODO,v 1.7 2005-06-10 22:54:10 mitch Exp $
 
 - add quiet mode
 - add MIDI input encoding (which engine?)
@@ -9,5 +9,3 @@ $Id: TODO,v 1.6 2005-06-09 16:04:52 mitch Exp $
 - tar subdirectories
 - (un)rar support
 - use zip if unzip unavailable
-
-- OGG encoding problems with raw input
