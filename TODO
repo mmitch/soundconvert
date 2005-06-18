@@ -1,7 +1,6 @@
-$Id: TODO,v 1.7 2005-06-10 22:54:10 mitch Exp $
+$Id: TODO,v 1.8 2005-06-18 12:50:06 mitch Exp $
 
 - add quiet mode
-- add MIDI input encoding (which engine?)
 - add TAG support for MODs (with manual editing?)
 
 - unique filename for gunzip+bunzip2 (check if file exists!)
