@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.20 2005-06-10 22:54:10 mitch Exp $
+# $Id: soundconvert.pl,v 1.21 2005-06-18 12:49:43 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.20 $';
+my $version = '$Revision: 1.21 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -348,6 +348,38 @@ my $typelist = {
 	
     },
 
+    'audio/x-midi' => {
+
+	TYPE => 'sound',
+	NAME => 'MID',
+	NEW_EXTENSION => '',
+	CHECK_FOR_TOOLS => sub {
+	    if (`which timidity` eq '') {
+		warn "MID unavailable: binary timidity not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    # no tags yet
+	    return {};
+	},
+	REMAP_INFO => {
+	    # no tags yet
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    return ('timidity','-a','-Ow','-o','-','-idqq','--no-loop','-k','0','-Ow','--output-stereo','--output-16bit','-s','44100',$file);
+	},
+	OUTPUT_IS_RAW => 1,
+	ENCODE_TO_NATIVE => sub {
+	    warn "can't encode to mid!";
+	    return ('dd','of=/dev/null');
+	},
+	TAG_NATIVE => sub {
+	},
+    },
+
     # TYPE              scalar 'archive'
     # NAME              (scalar)
     # CHECK_FOR_TOOLS   (coderef returning scalar)
@@ -629,21 +661,27 @@ sub process_file($)
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
-# Sonderlocken für alles, was als application/octet-stream gemeldet wird
+# Sonderlocken für alles, was `file -i` nicht richti meldet
     if ($type eq 'application/octet-stream') {
 	if ( (`file -- "$filename"` =~ /gzip compressed data/)
-	     or ($filename =~ /\.gz$/ ) ) {
+	     or ($filename =~ /\.gz$/i ) ) {
 	    $type = 'application/gzip';
 	} elsif ( (`file -- "$filename"` =~ /ScreamTracker III Module sound data/)
-		  or ($filename =~ /\.s3m$/ ) ) {
+		  or ($filename =~ /\.s3m$/i ) ) {
 	    $type = 'audio/x-mod';
 	} elsif ( (`file -- "$filename"` =~ /FLAC audio bitstream data/)
-		  or ($filename =~ /\.flac$/ ) ) {
+		  or ($filename =~ /\.flac$/i ) ) {
 	    $type = 'audio/flac';
-	} elsif ($filename =~ /\.gbs$/) {
+	} elsif ($filename =~ /\.gbs$/i) {
 	    $type = 'audio/gbs';
 	}
+    } elsif ($type =~ 'audio/unknown') {
+	if ( (`file -- "$filename"` =~ /MIDI data/)
+	     or ($filename =~ /\.mid$/i ) ) {
+	    $type = 'audio/x-midi';
+	}
     }
+
 # /TODO
 
     if (exists $typelist->{$type}) {
