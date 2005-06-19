@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.21 2005-06-18 12:49:43 mitch Exp $
+# $Id: soundconvert.pl,v 1.22 2005-06-19 16:24:09 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.21 $';
+my $version = '$Revision: 1.22 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -79,11 +79,22 @@ my $typelist = {
 	    if (`which $binary` eq '') {
 		$binary = 'toolame';
 	    }
-	    return ($binary,
-		    '-b','128',
-		    '-',
-		    $file
-		    );
+	    my @call = ($binary);
+	    if ($global_output_is_raw) {
+		push @call, (
+			     '-r',
+			     '-x',
+			     '-s','44.1',
+			     '-m','j',
+			     '--bitwidth','16',
+			     );
+	    }
+	    push @call, (
+			 '-b','128',
+			 '-',
+			 $file
+			 );
+	    return @call;
 	},
 	TAG_NATIVE => sub {
 	    my $file = shift;
