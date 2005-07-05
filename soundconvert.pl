@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.22 2005-06-19 16:24:09 mitch Exp $
+# $Id: soundconvert.pl,v 1.23 2005-07-05 18:03:26 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.22 $';
+my $version = '$Revision: 1.23 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -22,6 +22,7 @@ my $global_output_is_raw = 0;  # another dirty hack, global variable
 my $typelist = {
 
     # TYPE              scalar 'sound'
+    # IO                scalar 'i'nput, 'o'utput, 'io'
     # NAME              (scalar)
     # NEW_EXTENSION     (scalar)
     # CHECK_FOR_TOOLS   (coderef returning scalar)
@@ -35,6 +36,7 @@ my $typelist = {
     'audio/mpeg' => {
 
 	TYPE => 'sound',
+	IO => 'io',
 	NAME => 'MP3',
 	NEW_EXTENSION => 'mp3',
 	CHECK_FOR_TOOLS => sub {
@@ -107,6 +109,7 @@ my $typelist = {
     'application/ogg' => {
 
 	TYPE => 'sound',
+	IO => 'io',
 	NAME => 'OGG',
 	NEW_EXTENSION => 'ogg',
 	CHECK_FOR_TOOLS => sub {
@@ -185,6 +188,7 @@ my $typelist = {
     'audio/x-mod' => {
 
 	TYPE => 'sound',
+	IO => 'i',
 	NAME => 'MOD',
 	NEW_EXTENSION => '',
 	CHECK_FOR_TOOLS => sub {
@@ -217,6 +221,7 @@ my $typelist = {
     'audio/x-wav' => {
 
 	TYPE => 'sound',
+	IO => 'io',
 	NAME => 'WAV',
 	NEW_EXTENSION => 'wav',
 	CHECK_FOR_TOOLS => sub {
@@ -252,6 +257,7 @@ my $typelist = {
     'audio/flac' => {
 
 	TYPE => 'sound',
+	IO => 'io',
 	NAME => 'FLAC',
 	NEW_EXTENSION => 'flac',
 	CHECK_FOR_TOOLS => sub {
@@ -308,6 +314,7 @@ my $typelist = {
     'audio/gbs' => {
 
 	TYPE => 'sound',
+	IO => 'i',
 	NAME => 'GBS',
 	NEW_EXTENSION => 'gbs',
 	CHECK_FOR_TOOLS => sub {
@@ -362,6 +369,7 @@ my $typelist = {
     'audio/x-midi' => {
 
 	TYPE => 'sound',
+	IO => 'i',
 	NAME => 'MID',
 	NEW_EXTENSION => '',
 	CHECK_FOR_TOOLS => sub {
@@ -528,10 +536,17 @@ Usage:  soundconvert.pl [-h] [-o format] infile [infile [...]]
 EOF
     ;
     foreach my $type (keys %{$typelist}) {
-	if ($typelist->{$type}->{TYPE} eq 'sound') {
+	if ($typelist->{$type}->{TYPE} eq 'sound' and $typelist->{$type}->{IO} =~ /o/ ) {
 	    print "              ". lc $typelist->{$type}->{NAME} ."\n";
 	}
     }
+    print "Available input formats are:\n ";
+    foreach my $type (keys %{$typelist}) {
+	if ($typelist->{$type}->{TYPE} eq 'sound' and $typelist->{$type}->{IO} =~ /i/ ) {
+	    print " ". lc $typelist->{$type}->{NAME};
+	}
+    }
+    print "\n";
 }
 
 if (not defined $ARGV[0] or $ARGV[0] eq '-h') {
@@ -589,6 +604,7 @@ if ($ARGV[0] eq '-o') {
     die "no output format given with -o" unless defined $type;
     die "output format not available" unless typelist_find($type);
     die "output format not available" unless typelist_find($type)->{TYPE} eq 'sound';
+    die "output format not available" unless typelist_find($type)->{IO} =~ /o/;
     $encoder = typelist_find($type);
 }
 
