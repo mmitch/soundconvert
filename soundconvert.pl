@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.24 2005-07-15 20:09:09 mitch Exp $
+# $Id: soundconvert.pl,v 1.25 2005-07-15 22:14:08 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,15 +9,15 @@
 #
 
 use strict;
-#use File::Temp qw/ tempdir /;
+use IO::Handle;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.24 $';
+my $version = '$Revision: 1.25 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
 
-my $global_output_is_raw = 0;  # another dirty hack, global variable
+sub piped_fork($$$$$$);
 
 my $typelist = {
 
@@ -28,9 +28,8 @@ my $typelist = {
     # CHECK_FOR_TOOLS   (coderef returning scalar)
     # GET_INFO          (coderef returning hashref)
     # REMAP_INFO        (hashref)
-    # OUTPUT_IS_RAW     (scalar) optional
-    # DECODE_TO_WAV     (coderef returning array)
-    # ENCODE_TO_NATIVE  (coderef returning array)
+    # DECODE_TO_WAV     (coderef)
+    # ENCODE_TO_NATIVE  (coderef)
     # TAG_NATIVE        (coderef)
 
     'audio/mpeg' => {
@@ -72,7 +71,9 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('mpg123','-q','-w','-',$file);
+	    my @call = ('mpg123','-q','-w','-',$file);
+	    print STDERR "  decoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
@@ -81,22 +82,14 @@ my $typelist = {
 	    if (`which $binary` eq '') {
 		$binary = 'toolame';
 	    }
-	    my @call = ($binary);
-	    if ($global_output_is_raw) {
-		push @call, (
-			     '-r',
-			     '-x',
-			     '-s','44.1',
-			     '-m','j',
-			     '--bitwidth','16',
-			     );
-	    }
-	    push @call, (
-			 '-b','128',
-			 '-',
-			 $file
-			 );
-	    return @call;
+	    my @call = ($binary,
+			'-b','128',
+			'-',
+			$file
+			);
+
+	    print STDERR "  encoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	TAG_NATIVE => sub {
 	    my $file = shift;
@@ -146,7 +139,9 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('oggdec','-Q','-o','-',$file);
+	    my @call = ('oggdec','-Q','-o','-',$file);
+	    print STDERR "  decoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
@@ -156,10 +151,6 @@ my $typelist = {
 			'-q','6'   # quality
 			);
 	    
-	    if ($global_output_is_raw) {
-		push @call, '-r';
-	    }
-
 	    push @call, ('-d',$tags->{'YEAR'}) if exists $tags->{'YEAR'};
 	    push @call, ('-N',$tags->{'TRACKNUM'}) if exists $tags->{'TRACKNUM'};
 	    push @call, ('-t',$tags->{'TITLE'}) if exists $tags->{'TITLE'};
@@ -178,7 +169,9 @@ my $typelist = {
 	    }
 	    push @call, ('-',
 			 '-o', $file);
-	    return @call;
+
+	    print STDERR "  encoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	TAG_NATIVE => sub {
 	    # done at encoding time
@@ -207,12 +200,21 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
+	    my @call = ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
+	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav','-');
+	    piped_fork
+		sub {
+		    print STDERR "  decoding: <@call>\n";
+		    exec { $call[0] } @call;
+		}, 0, 0,
+	    sub {
+		print STDERR "  filter: <@sox>\n";
+		exec { $sox[0] } @sox;
+	    }, 0, 0;
+	    wait;
 	},
-	OUTPUT_IS_RAW => 1,
 	ENCODE_TO_NATIVE => sub {
-	    warn "can't encode to mod!";
-	    return ('dd','of=/dev/null');
+	    die "  can't encode to mod!";
 	},
 	TAG_NATIVE => sub {
 	},
@@ -225,10 +227,6 @@ my $typelist = {
 	NAME => 'WAV',
 	NEW_EXTENSION => 'wav',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which dd` eq '') {
-		warn "WAV unavailable: binary dd not found";
-		return 0;
-	    }
 	    if (`which sox` eq '') {
 		warn "WAV unavailable: binary sox not found";
 		return 0;
@@ -244,15 +242,16 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('sox',$file,'-t','.wav','-r','44100','-w','-c','2','-s','-');
+	    my @call = ('sox',$file,'-t','.wav','-r','44100','-w','-c','2','-s','-');
+	    print STDERR "  decoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
-	    if ($global_output_is_raw) {
-		return ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav',$file);
-	    } else {
-		return ('dd','bs=2048',"of=$file");
-	    }
+	    # re-encode to fix length parameter!
+	    my @call = ('sox','-t','.wav','-','-t','.wav',$file);
+	    print STDERR "  encoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	TAG_NATIVE => sub {
 	},
@@ -296,12 +295,16 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('flac','-s','-d','-c',$file);
+	    my @call = ('flac','-s','-d','-c',$file);
+	    print STDERR "  decoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
 	    my $tags = shift;
-	    return ('flac','-s','-f','-o',$file,'-');
+	    my @call = ('flac','-s','-f','-o',$file,'-');
+	    print STDERR "  encoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	TAG_NATIVE => sub {
 	    my $file = shift;
@@ -328,6 +331,10 @@ my $typelist = {
 	    }
 	    if (`which gbsinfo` eq '') {
 		warn "GBS unavailable: binary gbsinfo not found";
+		return 0;
+	    }
+	    if (`which sox` eq '') {
+		warn "GBS unavailable: binary sox not found";
 		return 0;
 	    }
 	    return 1;
@@ -358,12 +365,21 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my $track = shift;
-	    return ('gbsplay','-o','stdout','-r','44100','-g','0','-f','6','-t','165',$file,$track,$track);
+	    my @call = ('gbsplay','-o','stdout','-r','44100','-g','0','-f','6','-t','165',$file,$track,$track);
+	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav','-');
+	    piped_fork
+		sub {
+		    print STDERR "  decoding: <@call>\n";
+		    exec { $call[0] } @call;
+		}, 0, 0,
+	    sub {
+		print STDERR "  filter: <@sox>\n";
+		exec { $sox[0] } @sox;
+	    }, 0, 0;
+	    wait;
 	},
-	OUTPUT_IS_RAW => 1,
 	ENCODE_TO_NATIVE => sub {
-	    warn "can't encode to gbs!";
-	    return ('dd','of=/dev/null');
+	    die "can't encode to gbs!";
 	},
 	TAG_NATIVE => sub {
 	},
@@ -392,12 +408,21 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    return ('timidity','-a','-Ow','-o','-','-idqq','--no-loop','-k','0','-Ow','--output-stereo','--output-16bit','-s','44100',$file);
+	    my @call = ('timidity','-a','-Ow','-o','-','-idqq','--no-loop','-k','0','-Ow','--output-stereo','--output-16bit','-s','44100',$file);
+	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav','-');
+	    piped_fork
+		sub {
+		    print STDERR "  decoding: <@call>\n";
+		    exec { $call[0] } @call;
+		}, 0, 0,
+	    sub {
+		print STDERR "  filter: <@sox>\n";
+		exec { $sox[0] } @sox;
+	    }, 0, 0;
+	    wait;
 	},
-	OUTPUT_IS_RAW => 1,
 	ENCODE_TO_NATIVE => sub {
-	    warn "can't encode to mid!";
-	    return ('dd','of=/dev/null');
+	    die "can't encode to mid!";
 	},
 	TAG_NATIVE => sub {
 	},
@@ -575,28 +600,13 @@ sub recode($$$$$$)
 {
     my ($handle, $encoder, $file, $newfile, $tags, $track) = @_;
 
-    my $child;
-    my @args_dec = &{$handle->{DECODE_TO_WAV}}($file, $track);
-    $global_output_is_raw = $handle->{OUTPUT_IS_RAW};
-    my @args_enc = &{$encoder->{ENCODE_TO_NATIVE}}($newfile, $tags);
     print "newfile: <$newfile>\n";
-    print "decode_args: <@args_dec>\n";
-    print "encode_args: <@args_enc>\n";
+    piped_fork
+	$handle->{DECODE_TO_WAV}, $file, $track,
+	$encoder->{ENCODE_TO_NATIVE}, $newfile, $tags;
     
-    # fork working process
-    unless ($child = fork()) {
-	# read decoded data from stdin
-	open STDIN, '-|',  @args_dec;
-	# exec ourself to encoding process
-	exec { $args_enc[0] } @args_enc;
-    }
-    if (defined $child) {
-	waitpid $child, 0;
-	# add tags
-	&{$encoder->{TAG_NATIVE}}($newfile, $tags);
-    } else {
-	warn "fork failed: $!";
-    }
+    wait;
+    &{$encoder->{TAG_NATIVE}}($newfile, $tags);
 }
 
 
@@ -735,6 +745,32 @@ sub process_file($)
     if ($file->{DELETE}) {
 	print "deleting temporary file <$filename>\n";
 	unlink $filename;
+    }
+}
+
+sub piped_fork($$$$$$) {
+    # prefork
+    my $fork = fork();
+    return unless defined $fork;
+    return if $fork;
+    # we are virgin child now
+
+    my ($write_ref, $w_arg_1, $w_arg_2, $read_ref, $r_arg_1, $r_arg_2) = (@_);
+    my ($write_handle, $read_handle);
+    pipe $read_handle, $write_handle;
+    # fork again into reader and writer
+    $fork = fork();
+    return unless defined $fork;
+    if ($fork) {
+	my $fd = $write_handle->fileno;
+	open STDOUT, ">&$fd" or die "couldn't dup write_handle: $!";
+	&$write_ref($w_arg_1, $w_arg_2);
+	exit;
+    } else {
+	my $fd = $read_handle->fileno;
+	open STDIN, "<&$fd" or die "couldn't dup read_handle: $!";
+	&$read_ref($r_arg_1, $r_arg_2);
+	exit;
     }
 }
 
