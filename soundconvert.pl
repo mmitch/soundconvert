@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.23 2005-07-05 18:03:26 mitch Exp $
+# $Id: soundconvert.pl,v 1.24 2005-07-15 20:09:09 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 #use File::Temp qw/ tempdir /;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.23 $';
+my $version = '$Revision: 1.24 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -248,7 +248,11 @@ my $typelist = {
 	},
 	ENCODE_TO_NATIVE => sub {
 	    my $file = shift;
-	    return ('dd','bs=2048',"of=$file");
+	    if ($global_output_is_raw) {
+		return ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav',$file);
+	    } else {
+		return ('dd','bs=2048',"of=$file");
+	    }
 	},
 	TAG_NATIVE => sub {
 	},
