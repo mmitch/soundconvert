@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.30 2005-07-16 08:44:07 mitch Exp $
+# $Id: soundconvert.pl,v 1.31 2005-07-16 08:57:12 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.30 $';
+my $version = '$Revision: 1.31 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -435,13 +435,18 @@ my $typelist = {
     # CHECK_FOR_TOOLS   (coderef returning scalar)
     # UNARCHIVE         (coderef returning array)
 
-    'application/x-tar' => {
+    'application/x-gtar' => {
 
 	TYPE => 'archive',
 	NAME => 'TAR',
 	CHECK_FOR_TOOLS => sub {
-	    unless (defined which('tar')) {
-		warn "TAR unavailable: binary tar not found";
+	    my $have_tar;
+	    BEGIN {
+		eval { require Archive::Tar; };
+		$have_tar = not $@;
+	    }
+	    unless ($have_tar) {
+		warn "TAR unavailable: Perl module Archive::Tar not found";
 		return 0;
 	    }
 	    return 1;
@@ -449,22 +454,16 @@ my $typelist = {
 	UNARCHIVE => sub {
 	    my $file = shift;
 	    my @newfiles;
-	    open TARLIST, "tar -tf $file |" or die "can't open tar: $1";
-	    while (my $line = <TARLIST>) {
-		chomp $line;
-		my $complete = $line;
-		my ($filename, $dirname ) = fileparse( $complete, () );
-		if ($dirname ne './') {
-		    warn "TAR: no subdir support yet, skipping: $complete\n";
-		} else {
-		    system 'tar','-xf',$file,$filename;
-		}
-		push @newfiles, $filename;
+	    my $tar = Archive::Tar->new($file);
+	    die "error opening TAR archive\n" unless defined $tar;
+	    
+	    foreach my $file ($tar->get_files) {
+		$tar->extract_file($file->full_path, $file->name);
+		push @newfiles, $file->name;
 	    }
-	    close TARLIST;
 	    return @newfiles;
 	}
-
+	
     },
 	
     'application/x-gzip' => {
