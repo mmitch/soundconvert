@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.25 2005-07-15 22:14:08 mitch Exp $
+# $Id: soundconvert.pl,v 1.26 2005-07-16 07:48:13 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -12,7 +12,7 @@ use strict;
 use IO::Handle;
 use File::Basename qw/ fileparse /;
 
-my $version = '$Revision: 1.25 $';
+my $version = '$Revision: 1.26 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -478,10 +478,13 @@ my $typelist = {
 	},
 	UNARCHIVE => sub {
 	    my $file = shift;
+	    $file =~ s/\\/\\\\/g;
+	    $file =~ s/"/\\"/g;
+
 	    my $newfile = $file;
 	    $newfile .= '.gunzip' unless ($newfile =~ s/.gz$//);
-	    
-	    system "gunzip < $file > $newfile";
+
+	    system "gunzip < \"$file\" > \"$newfile\"";
 	    
 	    return ($newfile);
 	},
@@ -501,10 +504,14 @@ my $typelist = {
 	},
 	UNARCHIVE => sub {
 	    my $file = shift;
+	    $file =~ s/\\/\\\\/g;
+	    $file =~ s/"/\\"/g;
+	    print "  $file\n";
+
 	    my $newfile = $file;
 	    $newfile .= '.bunzip2' unless ($newfile =~ s/.bz2$//);
-	    
-	    system "bunzip2 < $file > $newfile";
+
+	    system "bunzip2 < \"$file\" > \"$newfile\"";
 	    
 	    return ($newfile);
 	}
@@ -697,27 +704,40 @@ sub process_file($)
     }
 
     # determine filetype
-    `file -i -- "$filename"` =~ /(\S+)(, .+)?$/;
+    open FILE, '-|', 'file', '-i', '--', $filename or die "can't open `file`: $!\n";
+    while (<FILE>) {
+	print;
+	last if /(\S+)(, .+)?$/;
+    }
+    close FILE or die "can't close `file`: $!\n";
+
     my $type = $1;
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
 # Sonderlocken für alles, was `file -i` nicht richti meldet
     if ($type eq 'application/octet-stream') {
-	if ( (`file -- "$filename"` =~ /gzip compressed data/)
+	open FILE, '-|', 'file', $filename or die "can't open `file`: $!\n";
+	my $filetype = <FILE>;
+	close FILE or die "can't close `file`: $!\n";
+
+	if ( ($filetype =~ /gzip compressed data/)
 	     or ($filename =~ /\.gz$/i ) ) {
 	    $type = 'application/gzip';
-	} elsif ( (`file -- "$filename"` =~ /ScreamTracker III Module sound data/)
+	} elsif ( ($filetype =~ /ScreamTracker III Module sound data/)
 		  or ($filename =~ /\.s3m$/i ) ) {
 	    $type = 'audio/x-mod';
-	} elsif ( (`file -- "$filename"` =~ /FLAC audio bitstream data/)
+	} elsif ( ($filetype =~ /FLAC audio bitstream data/)
 		  or ($filename =~ /\.flac$/i ) ) {
 	    $type = 'audio/flac';
 	} elsif ($filename =~ /\.gbs$/i) {
 	    $type = 'audio/gbs';
 	}
     } elsif ($type =~ 'audio/unknown') {
-	if ( (`file -- "$filename"` =~ /MIDI data/)
+	open FILE, '-|', 'file', $filename or die "can't open `file`: $!\n";
+	my $filetype = <FILE>;
+	close FILE or die "can't close `file`: $!\n";
+	if ( ($filetype =~ /MIDI data/)
 	     or ($filename =~ /\.mid$/i ) ) {
 	    $type = 'audio/x-midi';
 	}
