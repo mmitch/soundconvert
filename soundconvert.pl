@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.26 2005-07-16 07:48:13 mitch Exp $
+# $Id: soundconvert.pl,v 1.27 2005-07-16 08:03:48 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -9,10 +9,11 @@
 #
 
 use strict;
-use IO::Handle;
 use File::Basename qw/ fileparse /;
+use File::Type;
+use IO::Handle;
 
-my $version = '$Revision: 1.26 $';
+my $version = '$Revision: 1.27 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -704,22 +705,15 @@ sub process_file($)
     }
 
     # determine filetype
-    open FILE, '-|', 'file', '-i', '--', $filename or die "can't open `file`: $!\n";
-    while (<FILE>) {
-	print;
-	last if /(\S+)(, .+)?$/;
-    }
-    close FILE or die "can't close `file`: $!\n";
+    my $ft = File::Type->new();
 
-    my $type = $1;
+    my $type = $ft->mime_type($filename);
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
 # Sonderlocken für alles, was `file -i` nicht richti meldet
     if ($type eq 'application/octet-stream') {
-	open FILE, '-|', 'file', $filename or die "can't open `file`: $!\n";
-	my $filetype = <FILE>;
-	close FILE or die "can't close `file`: $!\n";
+	my $filetype = $ft->checktype_filename($filename);
 
 	if ( ($filetype =~ /gzip compressed data/)
 	     or ($filename =~ /\.gz$/i ) ) {
@@ -734,9 +728,8 @@ sub process_file($)
 	    $type = 'audio/gbs';
 	}
     } elsif ($type =~ 'audio/unknown') {
-	open FILE, '-|', 'file', $filename or die "can't open `file`: $!\n";
-	my $filetype = <FILE>;
-	close FILE or die "can't close `file`: $!\n";
+	my $filetype = $ft->checktype_filename($filename);
+
 	if ( ($filetype =~ /MIDI data/)
 	     or ($filename =~ /\.mid$/i ) ) {
 	    $type = 'audio/x-midi';
