@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.32 2005-07-16 09:11:32 mitch Exp $
+# $Id: soundconvert.pl,v 1.33 2005-07-16 09:26:02 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.32 $';
+my $version = '$Revision: 1.33 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -591,6 +591,10 @@ my $encoder = $typelist->{'audio/mpeg'};
 # map multiple input types
 # TODO use $NAME as key, make type a member array
 $typelist->{'audio/x-ft2-mod'} = $typelist->{'audio/x-mod'};
+$typelist->{'audio/x-protracker-mod'} = $typelist->{'audio/x-mod'};
+$typelist->{'audio/x-st3-mod'} = $typelist->{'audio/x-mod'};
+$typelist->{'audio/x-669-mod'} = $typelist->{'audio/x-mod'};
+$typelist->{'audio/x-fasttracker-mod'} = $typelist->{'audio/x-mod'};
 
 sub helptext() {
     print <<"EOF";
@@ -748,12 +752,11 @@ sub process_file($)
 	if ( ($filetype =~ /gzip compressed data/)
 	     or ($filename =~ /\.gz$/i ) ) {
 	    $type = 'application/gzip';
-	} elsif ( ($filetype =~ /ScreamTracker III Module sound data/)
-		  or ($filename =~ /\.s3m$/i ) ) {
-	    $type = 'audio/x-mod';
 	} elsif ( ($filetype =~ /FLAC audio bitstream data/)
 		  or ($filename =~ /\.flac$/i ) ) {
 	    $type = 'audio/flac';
+	} elsif ( $filename =~ /\.(it|mod)$/i ) {
+	    $type = 'audio/x-mod';
 	} elsif ($filename =~ /\.gbs$/i) {
 	    $type = 'audio/gbs';
 	}
