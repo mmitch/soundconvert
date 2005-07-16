@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.31 2005-07-16 08:57:12 mitch Exp $
+# $Id: soundconvert.pl,v 1.32 2005-07-16 09:11:32 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.31 $';
+my $version = '$Revision: 1.32 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -521,14 +521,20 @@ my $typelist = {
 	},
 	UNARCHIVE => sub {
 	    my $file = shift;
-	    $file =~ s/\\/\\\\/g;
-	    $file =~ s/"/\\"/g;
-	    print "  $file\n";
-
 	    my $newfile = $file;
 	    $newfile .= '.bunzip2' unless ($newfile =~ s/.bz2$//);
 
-	    system "bunzip2 < \"$file\" > \"$newfile\"";
+	    piped_fork
+		sub {
+		    my @call = ('bunzip2', '--stdout', '--keep', $file);
+		    exec { $call[0] } @call;
+		}, 0, 0,
+	    sub {
+		my @call = ('dd',"of=$newfile");
+		exec { $call[0] } @call;
+	    }, 0, 0;
+
+	    wait;
 	    
 	    return ($newfile);
 	}
@@ -581,6 +587,10 @@ foreach my $type (keys %{$typelist}) {
 #my $encoder = $typelist->{'audio/flac'};
 my $encoder = $typelist->{'audio/mpeg'};
 #my $encoder = $typelist->{'application/ogg'};
+
+# map multiple input types
+# TODO use $NAME as key, make type a member array
+$typelist->{'audio/x-ft2-mod'} = $typelist->{'audio/x-mod'};
 
 sub helptext() {
     print <<"EOF";
