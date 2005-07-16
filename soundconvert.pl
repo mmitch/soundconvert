@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.28 2005-07-16 08:09:40 mitch Exp $
+# $Id: soundconvert.pl,v 1.29 2005-07-16 08:31:54 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.28 $';
+my $version = '$Revision: 1.29 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -121,7 +121,7 @@ my $typelist = {
 		warn "OGG unavailable: binary oggenc not found";
 		return 0;
 	    }
-	    unless (defined which('oggenc')) {
+	    unless (defined which('oggdec')) {
 		warn "OGG unavailable: binary oggdec not found";
 		return 0;
 	    }
@@ -467,26 +467,42 @@ my $typelist = {
 
     },
 	
-    'application/gzip' => {
+    'application/x-gzip' => {
 
 	TYPE => 'archive',
 	NAME => 'GZIP',
 	CHECK_FOR_TOOLS => sub {
-	    unless (defined which('gunzip')) {
-		warn "GZIP unavailable: binary gunzip not found";
+	    my $have_gzip;
+	    BEGIN {
+		eval { require Compress::Zlib; };
+		$have_gzip = not $@;
+	    }
+	    unless ($have_gzip) {
+		warn "GZIP unavailable: Perl module Compress::Zlib not found";
 		return 0;
 	    }
 	    return 1;
 	},
 	UNARCHIVE => sub {
 	    my $file = shift;
-	    $file =~ s/\\/\\\\/g;
-	    $file =~ s/"/\\"/g;
-
 	    my $newfile = $file;
 	    $newfile .= '.gunzip' unless ($newfile =~ s/.gz$//);
 
-	    system "gunzip < \"$file\" > \"$newfile\"";
+	    my $buffer ;
+
+	    my $gz = Compress::Zlib::gzopen($file, "rb")
+		or die "can't open $file: $!\n" ;
+	    open GUNZIP, '>', $newfile or die "can't open $newfile: $!\n";
+
+	    print GUNZIP $buffer while $gz->gzread($buffer) > 0 ;
+# TODO: error handling does not work?
+#	    my $gzerrno = $gz->gzerror;
+#
+#	    die "Error reading from $file: $gzerrno" . ($gzerrno+0) . "\n"
+#		if $gzerrno ne 'Z_STREAM_END' ;
+
+	    $gz->gzclose();
+	    close GUNZIP or die "can't close $newfile: $!\n";
 	    
 	    return ($newfile);
 	},
