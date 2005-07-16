@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.29 2005-07-16 08:31:54 mitch Exp $
+# $Id: soundconvert.pl,v 1.30 2005-07-16 08:44:07 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.29 $';
+my $version = '$Revision: 1.30 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -536,13 +536,18 @@ my $typelist = {
 	
     },
 
-    'application/x-zip' => {
+    'application/zip' => {
 
 	TYPE => 'archive',
 	NAME => 'ZIP',
 	CHECK_FOR_TOOLS => sub {
-	    unless (defined which('unzip')) {
-		warn "ZIP unavailable: binary unzip not found";
+	    my $have_unzip;
+	    BEGIN {
+		eval { require Archive::Zip; };
+		$have_unzip = not $@;
+	    }
+	    unless ($have_unzip) {
+		warn "ZIP unavailable: Perl module Archive::Zip not found";
 		return 0;
 	    }
 	    return 1;
@@ -550,14 +555,13 @@ my $typelist = {
 	UNARCHIVE => sub {
 	    my $file = shift;
 	    my @newfiles;
-	    open UNZIPLIST, "unzip -Z -1 $file |" or die "can't open unzip: $1";
-	    while (my $line = <UNZIPLIST>) {
-		chomp $line;
-		my $filename = $line;
-		system 'unzip','-n','-j',$file,$filename;
-		push @newfiles, $filename;
+	    my $zip = Archive::Zip->new($file);
+	    die "error opening ZIP archive\n" unless defined $zip;
+	    
+	    foreach my $member ($zip->members) {
+		$zip->extractMemberWithoutPaths( $member );
+		push @newfiles, $member->fileName();
 	    }
-	    close UNZIPLIST;
 	    return @newfiles;
 	}
 	
