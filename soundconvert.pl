@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.27 2005-07-16 08:03:48 mitch Exp $
+# $Id: soundconvert.pl,v 1.28 2005-07-16 08:09:40 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -11,9 +11,10 @@
 use strict;
 use File::Basename qw/ fileparse /;
 use File::Type;
+use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.27 $';
+my $version = '$Revision: 1.28 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -49,11 +50,11 @@ my $typelist = {
 		warn "MP3 unavailable: Perl module MP3::Info not found";
 		return 0;
 	    }
-	    if (`which lame` eq '' and `which toolame` eq '') {
+	    unless (defined which('lame') or defined which('toolame')) {
 		warn "MP3 unavailable: neither binary lame nor binary toolame not found";
 		return 0;
 	    }
-	    if (`which mpg123` eq '') {
+	    unless (defined which('mpg123')) {
 		warn "MP3 unavailable: binary mpg123 not found";
 		return 0;
 	    }
@@ -80,7 +81,7 @@ my $typelist = {
 	    my $file = shift;
 	    my $tags = shift;
 	    my $binary = 'lame';
-	    if (`which $binary` eq '') {
+	    unless (defined which($binary)) {
 		$binary = 'toolame';
 	    }
 	    my @call = ($binary,
@@ -116,11 +117,11 @@ my $typelist = {
 		warn "OGG unavailable: Perl module Ogg::Vorbis::Header not found";
 		return 0;
 	    }
-	    if (`which oggenc` eq '') {
+	    unless (defined which('oggenc')) {
 		warn "OGG unavailable: binary oggenc not found";
 		return 0;
 	    }
-	    if (`which oggdec` eq '') {
+	    unless (defined which('oggenc')) {
 		warn "OGG unavailable: binary oggdec not found";
 		return 0;
 	    }
@@ -186,7 +187,7 @@ my $typelist = {
 	NAME => 'MOD',
 	NEW_EXTENSION => '',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which mikmod` eq '') {
+	    unless (defined which('mikmod')) {
 		warn "MOD unavailable: binary mikmod not found";
 		return 0;
 	    }
@@ -228,7 +229,7 @@ my $typelist = {
 	NAME => 'WAV',
 	NEW_EXTENSION => 'wav',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which sox` eq '') {
+	    unless (defined which('sox')) {
 		warn "WAV unavailable: binary sox not found";
 		return 0;
 	    }
@@ -274,11 +275,11 @@ my $typelist = {
 		warn "FLAC unavailable: Perl module Audio::FLAC::Header not found";
 		return 0;
 	    }
-	    if (`which flac` eq '') {
+	    unless (defined which('flac')) {
 		warn "FLAC unavailable: binary flac not found";
 		return 0;
 	    }
-	    if (`which metaflac` eq '') {
+	    unless (defined which('metaflac')) {
 		warn "FLAC unavailable: binary metaflac not found";
 		return 0;
 	    }
@@ -326,15 +327,15 @@ my $typelist = {
 	NAME => 'GBS',
 	NEW_EXTENSION => 'gbs',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which gbsplay` eq '') {
+	    unless (defined which('gbsplay')) {
 		warn "GBS unavailable: binary gbsplay not found";
 		return 0;
 	    }
-	    if (`which gbsinfo` eq '') {
+	    unless (defined which('gbsinfo')) {
 		warn "GBS unavailable: binary gbsinfo not found";
 		return 0;
 	    }
-	    if (`which sox` eq '') {
+	    unless (defined which('sox')) {
 		warn "GBS unavailable: binary sox not found";
 		return 0;
 	    }
@@ -394,7 +395,7 @@ my $typelist = {
 	NAME => 'MID',
 	NEW_EXTENSION => '',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which timidity` eq '') {
+	    unless (defined which('timidity')) {
 		warn "MID unavailable: binary timidity not found";
 		return 0;
 	    }
@@ -439,7 +440,7 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'TAR',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which tar` eq '') {
+	    unless (defined which('tar')) {
 		warn "TAR unavailable: binary tar not found";
 		return 0;
 	    }
@@ -471,7 +472,7 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'GZIP',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which gunzip` eq '') {
+	    unless (defined which('gunzip')) {
 		warn "GZIP unavailable: binary gunzip not found";
 		return 0;
 	    }
@@ -497,7 +498,7 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'BZIP2',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which bunzip2` eq '') {
+	    unless (defined which('bunzip2')) {
 		warn "BZIP2 unavailable: binary bunzip2 not found";
 		return 0;
 	    }
@@ -524,7 +525,7 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'ZIP',
 	CHECK_FOR_TOOLS => sub {
-	    if (`which unzip` eq '') {
+	    unless (defined which('unzip')) {
 		warn "ZIP unavailable: binary unzip not found";
 		return 0;
 	    }
