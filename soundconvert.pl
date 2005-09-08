@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.34 2005-07-23 12:45:17 mitch Exp $
+# $Id: soundconvert.pl,v 1.35 2005-09-08 10:07:32 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.34 $';
+my $version = '$Revision: 1.35 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -595,6 +595,7 @@ $typelist->{'audio/x-protracker-mod'} = $typelist->{'audio/x-mod'};
 $typelist->{'audio/x-st3-mod'} = $typelist->{'audio/x-mod'};
 $typelist->{'audio/x-669-mod'} = $typelist->{'audio/x-mod'};
 $typelist->{'audio/x-fasttracker-mod'} = $typelist->{'audio/x-mod'};
+$typelist->{'audio/midi'} = $typelist->{'audio/x-midi'};
 
 sub helptext() {
     print <<"EOF";
