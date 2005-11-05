@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.35 2005-09-08 10:07:32 mitch Exp $
+# $Id: soundconvert.pl,v 1.36 2005-11-05 21:04:57 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.35 $';
+my $version = '$Revision: 1.36 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -214,6 +214,39 @@ my $typelist = {
 		exec { $sox[0] } @sox;
 	    }, 0, 0;
 	    wait;
+	},
+	ENCODE_TO_NATIVE => sub {
+	    die "  can't encode to mod!";
+	},
+	TAG_NATIVE => sub {
+	},
+    },
+
+    'audio/monkey' => {
+
+	TYPE => 'sound',
+	IO => 'i',
+	NAME => 'APE',
+	NEW_EXTENSION => '',
+	CHECK_FOR_TOOLS => sub {
+	    unless (defined which('mac')) {
+		warn "APE unavailable: binary mac not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    # no tags yet
+	    return {};
+	},
+	REMAP_INFO => {
+	    # no tags yet
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    my @call = ('mac',$file,'-','-d');
+	    print STDERR "  decoding: <@call>\n";
+	    exec { $call[0] } @call;
 	},
 	ENCODE_TO_NATIVE => sub {
 	    die "  can't encode to mod!";
@@ -762,6 +795,8 @@ sub process_file($)
 	    $type = 'audio/gbs';
 	} elsif ($filename =~ /\.ogg$/i ) {
 	    $type = 'application/ogg';
+	} elsif ($filename =~ /\.ape$/i ) {
+	    $type = 'audio/monkey';
 	}
     } elsif ($type =~ 'audio/unknown') {
 	my $filetype = $ft->checktype_filename($filename);
