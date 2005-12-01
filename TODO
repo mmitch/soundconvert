@@ -1,4 +1,4 @@
-$Id: TODO,v 1.9 2005-07-16 09:41:28 mitch Exp $
+$Id: TODO,v 1.10 2005-12-01 20:10:25 mitch Exp $
 
 - add quiet mode
 - add TAG support for MODs (with manual editing?)
@@ -6,3 +6,5 @@ $Id: TODO,v 1.9 2005-07-16 09:41:28 mitch Exp $
 - unique filename for gunzip+bunzip2 (check if file exists!)
 - tar --no-overwrite
 - (un)rar support
+
+- support cuetools and shntools
