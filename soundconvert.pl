@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.37 2005-12-15 22:53:03 mitch Exp $
+# $Id: soundconvert.pl,v 1.38 2006-01-14 12:04:00 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.37 $';
+my $version = '$Revision: 1.38 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -611,15 +611,19 @@ my $typelist = {
 # get temporary directory for archive extraction
 #my $tempdir = tempdir( TMPDIR => 1, CLEANUP => 1);
 
+# default encoder is MP3
+my $encoder = $typelist->{'audio/mpeg'};
+
+# check for configuration file
+my $rcfile = "$ENV{HOME}/.soundconvertrc";
+if (-r $rcfile) {
+    eval(`cat $rcfile`);
+}
+
 # check available backends
 foreach my $type (keys %{$typelist}) {
     delete $typelist->{$type} unless &{$typelist->{$type}->{CHECK_FOR_TOOLS}}();
 }
-
-# fest verdrahtet: Ausgabe ist MP3
-#my $encoder = $typelist->{'audio/flac'};
-my $encoder = $typelist->{'audio/mpeg'};
-#my $encoder = $typelist->{'application/ogg'};
 
 # map multiple input types
 # TODO use $NAME as key, make type a member array
