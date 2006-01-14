@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.38 2006-01-14 12:04:00 mitch Exp $
+# $Id: soundconvert.pl,v 1.39 2006-01-14 12:09:13 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.38 $';
+my $version = '$Revision: 1.39 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -650,11 +650,13 @@ EOF
 	}
     }
     print "Available input formats are:\n ";
+    my %inputlist;
     foreach my $type (keys %{$typelist}) {
 	if ($typelist->{$type}->{TYPE} eq 'sound' and $typelist->{$type}->{IO} =~ /i/ ) {
-	    print " ". lc $typelist->{$type}->{NAME};
+	    $inputlist{lc $typelist->{$type}->{NAME}}++;
 	}
     }
+    print " $_" foreach (sort keys %inputlist);
     print "\n";
 }
 
