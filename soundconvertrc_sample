@@ -1,0 +1,65 @@
+# $Id: soundconvertrc_sample,v 1.1 2006-01-14 12:06:26 mitch Exp $
+#
+# configuration file for soundconvert.pl
+# copy to ~/.soundconvertrc
+# this is eval()ed on startup, so be sure not to have malicious code in here!
+
+# change default encoder
+$encoder = $typelist->{'audio/mpeg'};
+#$encoder = $typelist->{'audio/flac'};
+#$encoder = $typelist->{'application/ogg'};
+
+# add personalized typelist entries below:
+$typelist->{'psyco_mp3out'} = {
+
+    TYPE => 'sound',
+    IO => 'o',
+    NAME => 'MP3-stick',
+    NEW_EXTENSION => 'mp3',
+    CHECK_FOR_TOOLS => sub {
+	my $have_mp3_info;
+	BEGIN {
+	    eval { require MP3::Info; };
+	    $have_mp3_info = not $@;
+	}
+	if (not $have_mp3_info) {
+	    warn "MP3 unavailable: Perl module MP3::Info not found";
+	    return 0;
+	}
+	unless (defined which('lame')) {
+	    warn "MP3 unavailable: binary lame not found";
+	    return 0;
+	}
+	return 1;
+    },
+    GET_INFO => sub {
+	# no-op, output only
+	return {};
+    },
+    REMAP_INFO => {
+    },
+    DECODE_TO_WAV => sub {
+	# no-op, output only
+    },
+    ENCODE_TO_NATIVE => sub {
+	my $file = shift;
+	my $tags = shift;
+	my @call = ('lame',
+		    '--abr','128',
+		    '--vbr-new',
+		    '-q','1',
+		    '-',
+		    $file
+		    );
+	
+	print STDERR "  encoding: <@call>\n";
+	exec { $call[0] } @call;
+    },
+    TAG_NATIVE => sub {
+	my $file = shift;
+	my $tags = shift;
+	MP3::Info::set_mp3tag( $file, $tags );
+    },
+
+};
+
