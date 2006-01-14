@@ -1,13 +1,8 @@
-# $Id: soundconvertrc_sample,v 1.1 2006-01-14 12:06:26 mitch Exp $
+# $Id: soundconvertrc_sample,v 1.2 2006-01-14 20:28:10 mitch Exp $
 #
 # configuration file for soundconvert.pl
 # copy to ~/.soundconvertrc
 # this is eval()ed on startup, so be sure not to have malicious code in here!
-
-# change default encoder
-$encoder = $typelist->{'audio/mpeg'};
-#$encoder = $typelist->{'audio/flac'};
-#$encoder = $typelist->{'application/ogg'};
 
 # add personalized typelist entries below:
 $typelist->{'psyco_mp3out'} = {
@@ -62,4 +57,10 @@ $typelist->{'psyco_mp3out'} = {
     },
 
 };
+
+# change default encoder
+$encoder = $typelist->{'psyco_mp3out'};
+#$encoder = $typelist->{'audio/mpeg'};
+#$encoder = $typelist->{'audio/flac'};
+#$encoder = $typelist->{'application/ogg'};
 
