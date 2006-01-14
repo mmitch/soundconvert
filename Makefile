@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2005-05-30 18:22:58 mitch Exp $
+# $Id: Makefile,v 1.3 2006-01-14 12:11:01 mitch Exp $
 
 PKGNAME=soundconvert
 VERSION=$(shell grep \$$Id: soundconvert.pl \
@@ -8,7 +8,7 @@ DISTDIR=$(PKGNAME)-$(VERSION)
 DISTFILE=$(DISTDIR).tar.gz
 
 BINARIES=soundconvert.pl
-CONFIG=
+CONFIG=soundconvertrc_sample
 DOCUMENTS=TODO
 
 FILES=$(BINARIES) $(CONFIG) $(DOCUMENTS)
