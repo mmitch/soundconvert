@@ -1,4 +1,4 @@
-# $Id: soundconvertrc_sample,v 1.4 2006-07-31 14:40:50 mitch Exp $
+# $Id: soundconvertrc_sample,v 1.5 2006-07-31 15:03:17 mitch Exp $
 #
 # configuration file for soundconvert.pl
 # copy to ~/.soundconvertrc
@@ -117,11 +117,15 @@ $typelist->{'audio/mp3_idv2'} = {
 	    'ALBUM'    => 'TALB',
 	    'YEAR'     => 'TYER',
             'COMMENT'  => 'COMM',
-	    #'GENRE'   => ???
+	    #'GENRE'   => 'TCON'
 	);
 	foreach my $tag (keys %taglist) {
 	    if (exists $tags->{$tag}) {
-		$id3v2->add_frame($taglist{$tag}, $tags->{$tag});
+		if ($tag ne 'COMMENT') {
+		    $id3v2->add_frame($taglist{$tag}, $tags->{$tag});
+		} else {
+		    $id3v2->add_frame($taglist{$tag}, '', '', $tags->{$tag});
+		}
 	    }
 	}
 	$id3v2->write_tag();
