@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.39 2006-01-14 12:09:13 mitch Exp $
+# $Id: soundconvert.pl,v 1.40 2006-07-31 13:13:38 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
@@ -14,7 +14,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '$Revision: 1.39 $';
+my $version = '$Revision: 1.40 $';
 $version =~ y/0-9.//cd;
 
 my $multiple_tracks_key = "__multitracks__";
@@ -617,7 +617,8 @@ my $encoder = $typelist->{'audio/mpeg'};
 # check for configuration file
 my $rcfile = "$ENV{HOME}/.soundconvertrc";
 if (-r $rcfile) {
-    eval(`cat $rcfile`);
+    eval(`cat "$rcfile"`);
+    die "  while loading $rcfile:\n$@\n" if $@;
 }
 
 # check available backends
@@ -785,8 +786,10 @@ sub process_file($)
     print "filetype: <$type>\n";
 
 # TODO schön und allgemeingültig! machen!
-# Sonderlocken für alles, was `file -i` nicht richti meldet
-    if ($type eq 'application/octet-stream') {
+# Sonderlocken für alles, was `file -i` nicht richtig meldet
+    if ($type eq 'audio/mp3') {
+	    $type = 'audio/mpeg';
+    } elsif ($type eq 'application/octet-stream') {
 	my $filetype = $ft->checktype_filename($filename);
 
 	if ( ($filetype =~ /gzip compressed data/)
