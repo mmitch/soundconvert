@@ -1,4 +1,4 @@
-# $Id: soundconvertrc_sample,v 1.3 2006-07-31 13:22:20 mitch Exp $
+# $Id: soundconvertrc_sample,v 1.4 2006-07-31 14:40:50 mitch Exp $
 #
 # configuration file for soundconvert.pl
 # copy to ~/.soundconvertrc
@@ -116,6 +116,7 @@ $typelist->{'audio/mp3_idv2'} = {
 	    'ARTIST'   => 'TPE1',
 	    'ALBUM'    => 'TALB',
 	    'YEAR'     => 'TYER',
+            'COMMENT'  => 'COMM',
 	    #'GENRE'   => ???
 	);
 	foreach my $tag (keys %taglist) {
