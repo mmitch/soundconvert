@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: soundconvert.pl,v 1.40 2006-07-31 13:13:38 mitch Exp $
 #
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information

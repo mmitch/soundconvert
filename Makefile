@@ -1,5 +1,3 @@
-# $Id: Makefile,v 1.3 2006-01-14 12:11:01 mitch Exp $
-
 PKGNAME=soundconvert
 VERSION=$(shell grep \$$Id: soundconvert.pl \
 	| head -n 1 | sed -e 's/^.*,v //' -e 's/ .*$$//')
