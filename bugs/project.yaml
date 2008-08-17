@@ -1,0 +1,8 @@
+--- !ditz.rubyforge.org,2008-03-06/project 
+name: soundconvert
+version: "0.4"
+components: 
+- !ditz.rubyforge.org,2008-03-06/component 
+  name: soundconvert
+releases: []
+

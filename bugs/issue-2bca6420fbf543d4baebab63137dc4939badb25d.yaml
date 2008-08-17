@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: ACL support
+desc: soundconvert.pl complains about unreadable files when the file mask denies access but ACLs grant access and you can in fact read the file
+type: :bugfix
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-08-17 21:38:38.090472 Z
+references: []
+
+id: 2bca6420fbf543d4baebab63137dc4939badb25d
+log_events: 
+- - 2008-08-17 21:38:38.746194 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
