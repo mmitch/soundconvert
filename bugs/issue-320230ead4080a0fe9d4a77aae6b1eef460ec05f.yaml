@@ -1,0 +1,21 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: support Perl 5.10
+desc: |-
+  BEGIN{} handling seems to have changed.  $have_mp3_info et al. produce "Variable "$have_mp3_info" is not available at /usr/bin/soundconvert.pl line 47."
+  possible workaround: our instead of my or real global variables (ugly!)
+  check what has changed and react accordingly
+type: :bugfix
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-14 21:57:15.041465 Z
+references: []
+
+id: 320230ead4080a0fe9d4a77aae6b1eef460ec05f
+log_events: 
+- - 2008-11-14 21:57:16.600922 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
