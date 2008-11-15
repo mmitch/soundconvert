@@ -2,6 +2,13 @@
 # copy to ~/.soundconvertrc
 # this is eval()ed on startup, so be sure not to have malicious code in here!
 
+# add additional tests here:
+our ($have_mp3_tag);
+BEGIN {
+    eval { require MP3::Tag; };
+    $have_mp3_tag = not $@;
+}	
+
 # add personalized typelist entries below:
 $typelist->{'psyco_mp3out'} = {
 
@@ -10,11 +17,6 @@ $typelist->{'psyco_mp3out'} = {
     NAME => 'MP3-stick',
     NEW_EXTENSION => 'mp3',
     CHECK_FOR_TOOLS => sub {
-	my $have_mp3_info;
-	BEGIN {
-	    eval { require MP3::Info; };
-	    $have_mp3_info = not $@;
-	}
 	if (not $have_mp3_info) {
 	    warn "MP3 unavailable: Perl module MP3::Info not found";
 	    return 0;
@@ -62,11 +64,6 @@ $typelist->{'audio/mp3_idv2'} = {
     NAME => 'MP3v2',
     NEW_EXTENSION => 'mp3',
     CHECK_FOR_TOOLS => sub {
-	my $have_mp3_tag;
-	BEGIN {
-	    eval { require MP3::Tag; };
-	    $have_mp3_tag = not $@;
-	}
 	if (not $have_mp3_tag) {
 	    warn "MP3v2 unavailable: Perl module MP3::Tag not found";
 	    return 0;

@@ -17,6 +17,28 @@ my $version = '1.40';
 
 my $multiple_tracks_key = "__multitracks__";
 
+# check for audio modules on startup
+our ($have_mp3_info, $have_ogg_vorbis_header, $have_audio_flac_header);
+BEGIN {
+    eval { require MP3::Info; };
+    $have_mp3_info = not $@;
+    eval { require Ogg::Vorbis::Header; };
+    $have_ogg_vorbis_header = not $@;
+    eval { require Audio::FLAC::Header; };
+    $have_audio_flac_header = not $@;
+}
+
+# check for archive/compression modules on startup
+our ($have_tar, $have_gzip, $have_unzip);
+BEGIN {
+    eval { require Archive::Tar; };
+    $have_tar = not $@;
+    eval { require Compress::Zlib; };
+    $have_gzip = not $@;
+    eval { require Archive::Zip; };
+    $have_unzip = not $@;
+}
+
 sub piped_fork($$$$$$);
 
 my $typelist = {
@@ -39,11 +61,6 @@ my $typelist = {
 	NAME => 'MP3',
 	NEW_EXTENSION => 'mp3',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_mp3_info;
-	    BEGIN {
-		eval { require MP3::Info; };
-		$have_mp3_info = not $@;
-	    }
 	    if (not $have_mp3_info) {
 		warn "MP3 unavailable: Perl module MP3::Info not found";
 		return 0;
@@ -106,11 +123,6 @@ my $typelist = {
 	NAME => 'OGG',
 	NEW_EXTENSION => 'ogg',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_ogg_vorbis_header;
-	    BEGIN {
-		eval { require Ogg::Vorbis::Header; };
-		$have_ogg_vorbis_header = not $@;
-	    }
 	    if (not $have_ogg_vorbis_header) {
 		warn "OGG unavailable: Perl module Ogg::Vorbis::Header not found";
 		return 0;
@@ -297,11 +309,6 @@ my $typelist = {
 	NAME => 'FLAC',
 	NEW_EXTENSION => 'flac',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_audio_flac_header;
-	    BEGIN {
-		eval { require Audio::FLAC::Header; };
-		$have_audio_flac_header = not $@;
-	    }
 	    if (not $have_audio_flac_header) {
 		warn "FLAC unavailable: Perl module Audio::FLAC::Header not found";
 		return 0;
@@ -471,11 +478,6 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'TAR',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_tar;
-	    BEGIN {
-		eval { require Archive::Tar; };
-		$have_tar = not $@;
-	    }
 	    unless ($have_tar) {
 		warn "TAR unavailable: Perl module Archive::Tar not found";
 		return 0;
@@ -502,11 +504,6 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'GZIP',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_gzip;
-	    BEGIN {
-		eval { require Compress::Zlib; };
-		$have_gzip = not $@;
-	    }
 	    unless ($have_gzip) {
 		warn "GZIP unavailable: Perl module Compress::Zlib not found";
 		return 0;
@@ -577,11 +574,6 @@ my $typelist = {
 	TYPE => 'archive',
 	NAME => 'ZIP',
 	CHECK_FOR_TOOLS => sub {
-	    my $have_unzip;
-	    BEGIN {
-		eval { require Archive::Zip; };
-		$have_unzip = not $@;
-	    }
 	    unless ($have_unzip) {
 		warn "ZIP unavailable: Perl module Archive::Zip not found";
 		return 0;
