@@ -6,10 +6,10 @@ desc: |-
   check what has changed and react accordingly
 type: :bugfix
 component: soundconvert
-release: 
+release: "1.41"
 reporter: Christian Garbs <mitch@cgarbs.de>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-11-14 21:57:15.041465 Z
 references: []
 
@@ -22,4 +22,12 @@ log_events:
 - - 2008-11-15 17:26:38.271000 Z
   - Christian Garbs <mitch@cgarbs.de>
   - changed status from unstarted to in_progress
+  - ""
+- - 2008-11-18 22:17:07.822435 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - closed with disposition fixed
+  - retest under Perl 5.10 successfull
+- - 2008-11-18 22:18:15.330367 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - assigned to release 1.41 from unassigned
   - ""
