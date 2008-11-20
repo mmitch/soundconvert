@@ -13,7 +13,7 @@ use File::Type;
 use File::Which;
 use IO::Handle;
 
-my $version = '1.41';
+my $version = '1.41git';
 
 my $multiple_tracks_key = "__multitracks__";
 
