@@ -1,9 +1,0 @@
-
-- add quiet mode
-- add TAG support for MODs (with manual editing?)
-
-- unique filename for gunzip+bunzip2 (check if file exists!)
-- tar --no-overwrite
-- (un)rar support
-
-- support cuetools and shntools

@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: unique filename for gunzip+bunzip2
+desc: check if file exists!
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:09:52.608117 Z
+references: []
+
+id: 3f19a47ce9f554a65edb0c80ee62f080dbc44a4e
+log_events: 
+- - 2008-11-20 23:09:53.126418 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""

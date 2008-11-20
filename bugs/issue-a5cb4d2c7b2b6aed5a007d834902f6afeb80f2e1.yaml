@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: add TAG support for MODs
+desc: might need manual editing
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:09:30.862125 Z
+references: []
+
+id: a5cb4d2c7b2b6aed5a007d834902f6afeb80f2e1
+log_events: 
+- - 2008-11-20 23:09:31.498203 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""

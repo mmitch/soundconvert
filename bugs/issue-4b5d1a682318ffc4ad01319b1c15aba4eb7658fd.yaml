@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: optimize tar options
+desc: use tar --no-overwrite
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:10:12.299002 Z
+references: []
+
+id: 4b5d1a682318ffc4ad01319b1c15aba4eb7658fd
+log_events: 
+- - 2008-11-20 23:10:12.709730 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""

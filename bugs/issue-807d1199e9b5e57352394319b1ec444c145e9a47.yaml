@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: add (un)rar support
+desc: add (un)rar support
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:10:35.390410 Z
+references: []
+
+id: 807d1199e9b5e57352394319b1ec444c145e9a47
+log_events: 
+- - 2008-11-20 23:10:35.757639 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""

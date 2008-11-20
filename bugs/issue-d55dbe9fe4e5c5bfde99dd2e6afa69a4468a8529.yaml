@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: cue/shn support
+desc: support cuetools and shntools
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:10:50.765579 Z
+references: []
+
+id: d55dbe9fe4e5c5bfde99dd2e6afa69a4468a8529
+log_events: 
+- - 2008-11-20 23:10:51.963153 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""

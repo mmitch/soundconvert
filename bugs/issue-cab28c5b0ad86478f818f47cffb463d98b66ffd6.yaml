@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: add quiet mode
+desc: be less verbose
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:09:00.321318 Z
+references: []
+
+id: cab28c5b0ad86478f818f47cffb463d98b66ffd6
+log_events: 
+- - 2008-11-20 23:09:00.811937 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
