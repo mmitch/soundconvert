@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: SID support
+desc: use sidplay2 to convert SIDs
+type: :feature
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-20 23:04:04.349245 Z
+references: []
+
+id: 5fea49cec6bb0281cb9f52f08d34c9fe40123f26
+log_events: 
+- - 2008-11-20 23:04:06.047385 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
