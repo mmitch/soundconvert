@@ -1,6 +1,5 @@
 PKGNAME=soundconvert
-VERSION=$(shell grep \$$Id: soundconvert.pl \
-	| head -n 1 | sed -e 's/^.*,v //' -e 's/ .*$$//')
+VERSION=$(shell grep \$$version soundconvert.pl | head -n 1 | cut -f 2 -d "'")
 
 DISTDIR=$(PKGNAME)-$(VERSION)
 DISTFILE=$(DISTDIR).tar.gz
