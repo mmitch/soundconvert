@@ -7,10 +7,14 @@ components:
 releases: 
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "1.41"
-  status: :unreleased
-  release_time: 
+  status: :released
+  release_time: 2008-11-20 23:02:53.314061 Z
   log_events: 
   - - 2008-11-18 22:18:01.380133 Z
     - Christian Garbs <mitch@cgarbs.de>
     - created
+    - ""
+  - - 2008-11-20 23:02:53.314093 Z
+    - Christian Garbs <mitch@cgarbs.de>
+    - released
     - ""
