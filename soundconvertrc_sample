@@ -9,7 +9,9 @@ BEGIN {
     $have_mp3_tag = not $@;
 }	
 
-# add personalized typelist entries below:
+# add personalized typelist entries below
+# note: as this is just a big hash, you can also overwrite single settings of
+# the default configuration
 $typelist->{'psyco_mp3out'} = {
 
     TYPE => 'sound',
