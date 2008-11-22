@@ -456,6 +456,8 @@ my $typelist = {
 		$line =~ s/^\s+\|\|\s+//;
 		if ($line =~ /^(Title|Author|Released)\s+:\s(.*?)\s*$/) {
 		    $tags->{uc($1)} = $2;
+		} elsif  ($line =~ m|^Playlist\s+:\s\d+/\d+\s+\(tune \d+/(\d+).*?\)|) {
+		    $tags->{$multiple_tracks_key} = $1;
 		}
 	    }
 	    waitpid $pid, 0;
@@ -468,8 +470,9 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
+	    my $track = shift;
 	    my $tmpfile = $file . '~~temp~~' . $$;
-	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t3:30','-os',$file);
+	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t3:30','-os','-o'.$track,$file);
 	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','1','-s',$tmpfile,'-t','.wav','-');
 
 	    # no piping possible!
