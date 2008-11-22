@@ -775,8 +775,8 @@ sub process_file($)
     my $type = $ft->mime_type($filename);
     print "filetype: <$type>\n";
 
-# TODO schön und allgemeingültig! machen!
-# Sonderlocken für alles, was `file -i` nicht richtig meldet
+# TODO schÃ¶n und allgemeingÃ¼ltig! machen!
+# Sonderlocken fÃ¼r alles, was `file -i` nicht richtig meldet
     if ($type eq 'audio/mp3') {
 	    $type = 'audio/mpeg';
     } elsif ($type eq 'application/octet-stream') {
