@@ -6,7 +6,7 @@ DISTFILE=$(DISTDIR).tar.gz
 
 BINARIES=soundconvert.pl
 CONFIG=soundconvertrc_sample
-DOCUMENTS=
+DOCUMENTS=HISTORY
 
 FILES=$(BINARIES) $(CONFIG) $(DOCUMENTS)
 
