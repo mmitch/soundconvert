@@ -12,6 +12,7 @@ use File::Basename qw/ fileparse /;
 use File::Type;
 use File::Which;
 use IO::Handle;
+use IPC::Open3;
 
 my $version = '1.41git';
 
@@ -426,6 +427,65 @@ my $typelist = {
 	
     },
 
+    'audio/sid' => {
+
+	TYPE => 'sound',
+	IO => 'i',
+	NAME => 'SID',
+	NEW_EXTENSION => 'sid',
+	CHECK_FOR_TOOLS => sub {
+	    unless (defined which('sidplay2')) {
+		warn "SID unavailable: binary sidplay2 not found";
+		return 0;
+	    }
+	    unless (defined which('sox')) {
+		warn "SID unavailable: binary sox not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    my $file = shift;
+	    my $tags = {};
+
+	    my ($chld_out, $chld_in);
+	    my $pid = open3( $chld_in, $chld_out, 0, qw(sidplay2 -q -t1 -w/dev/null max_headroom.sid) );
+	    while (my $line = <$chld_out>) {
+		chomp($line);
+		$line =~ s/\r//; # urks, sidplay2 uses \r for output formatting
+		$line =~ s/^\s+\|\|\s+//;
+		if ($line =~ /^(Title|Author|Released)\s+:\s(.*?)\s*$/) {
+		    $tags->{uc($1)} = $2;
+		}
+	    }
+	    waitpid $pid, 0;
+	    
+	    return $tags;
+	},
+	REMAP_INFO => {
+	    'AUTHOR' => 'ARTIST',
+	    'RELEASED' => 'YEAR',
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    my $tmpfile = $file . '~~temp~~' . $$;
+	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t4:0','-os',$file);
+	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','1','-s',$tmpfile,'-t','.wav','-');
+
+	    # no piping possible!
+	    system @call;
+	    system @sox;
+	    unlink $tmpfile;
+	    exit 0;
+	},
+	ENCODE_TO_NATIVE => sub {
+	    die "can't encode to sid!";
+	},
+	TAG_NATIVE => sub {
+	},
+	
+    },
+
     'audio/x-midi' => {
 
 	TYPE => 'sound',
@@ -798,6 +858,8 @@ sub process_file($)
 	    $type = 'audio/monkey';
 	} elsif ($filename =~ /\.mp3$/i ) {
 	    $type = 'audio/mpeg';
+	} elsif ($filename =~ /\.sid$/i ) {
+	    $type = 'audio/sid';
 	}
     } elsif ($type =~ 'audio/unknown') {
 	my $filetype = $ft->checktype_filename($filename);
