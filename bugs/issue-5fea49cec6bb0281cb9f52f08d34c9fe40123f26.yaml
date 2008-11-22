@@ -3,7 +3,7 @@ title: SID support
 desc: use sidplay2 to convert SIDs
 type: :feature
 component: soundconvert
-release: 
+release: "1.42"
 reporter: Christian Garbs <mitch@cgarbs.de>
 status: :in_progress
 disposition: 
@@ -19,4 +19,8 @@ log_events:
 - - 2008-11-22 17:33:26.738641 Z
   - Christian Garbs <mitch@cgarbs.de>
   - changed status from unstarted to in_progress
+  - ""
+- - 2008-11-22 17:33:55.080722 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - assigned to release 1.42 from unassigned
   - ""
