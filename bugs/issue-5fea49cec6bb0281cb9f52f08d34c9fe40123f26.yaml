@@ -24,3 +24,7 @@ log_events:
   - Christian Garbs <mitch@cgarbs.de>
   - assigned to release 1.42 from unassigned
   - ""
+- - 2008-11-22 17:43:01.692012 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - commented
+  - finished so far, needs to be tested
