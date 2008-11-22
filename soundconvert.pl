@@ -469,7 +469,7 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my $tmpfile = $file . '~~temp~~' . $$;
-	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t4:0','-os',$file);
+	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t3:30','-os',$file);
 	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','1','-s',$tmpfile,'-t','.wav','-');
 
 	    # no piping possible!
