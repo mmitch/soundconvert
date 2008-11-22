@@ -1,0 +1,32 @@
+soundconvert - convert ogg, mp3, flac, ... to ogg, mp3, flac, ...
+               while keeping tag information
+
+2005-2006,2008 (C) by Christian Garbs <mitch@cgarbs.de>
+licensed under GNU GPL
+
+http://www.cgarbs.de/cgi-bin/gitweb.cgi/soundconvert.git
+
+
+  *** WARNING ***
+  This is one big ugly dirty hack.  Be careful when using this script!
+  It might not warn you about overwriting files (among other things).
+
+
+soundconvert can recode sound formats like OGG, FLAC and MP3 to 128kbps-MP3s
+to be easier to handle on small mobile players.  Other output formats can be
+selected, too.
+
+soundconvert tries to keep all TAGs intact.  It understands ID3v1,
+OGG, FLAC and GBS tags.
+
+You can define your own conversion formats, see soundconvertrc_sample for
+details.
+
+"soundconvert.pl -h" gives a list of options.  Output files are named
+automatically (e.g. foo.mp3 will become foo.mp3.ogg when converted to OGG),
+see the warning above.
+
+Some archives (.zip, .tar) are supported as well (input only).
+To ensure full operation, install the appropriate Perl modules and/or
+encoders or decoders.  See the source code of soundconvert.pl for what's
+available.

@@ -5,8 +5,8 @@ type: :feature
 component: soundconvert
 release: "1.42"
 reporter: Christian Garbs <mitch@cgarbs.de>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2008-11-20 23:13:57.250480 Z
 references: []
 
@@ -24,3 +24,7 @@ log_events:
   - Christian Garbs <mitch@cgarbs.de>
   - changed status from unstarted to in_progress
   - create ChangeLog
+- - 2008-11-22 16:32:41.852183 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - closed with disposition fixed
+  - added README
