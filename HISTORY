@@ -1,2 +1,5 @@
+== 1.42 / 2008-11-29
+* SID support
+* add documentation
 == 1.41 / 2008-11-20
 * bugfix: support Perl 5.10
