@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: SID conversion uses only default subtune
+desc: ""
+type: :bugfix
+component: soundconvert
+release: "1.43"
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2009-01-04 15:34:56.324182 Z
+references: []
+
+id: 1565b4f4ce7aa31f9d17ccb435d9e80198017214
+log_events: 
+- - 2009-01-04 15:34:57.097988 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
