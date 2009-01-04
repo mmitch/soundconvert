@@ -449,7 +449,7 @@ my $typelist = {
 	    my $tags = {};
 
 	    my ($chld_out, $chld_in);
-	    my $pid = open3( $chld_in, $chld_out, 0, qw(sidplay2 -q -t1 -w/dev/null max_headroom.sid) );
+	    my $pid = open3( $chld_in, $chld_out, 0, (qw(sidplay2 -q -t1 -w/dev/null), $file) );
 	    while (my $line = <$chld_out>) {
 		chomp($line);
 		$line =~ s/\r//; # urks, sidplay2 uses \r for output formatting
