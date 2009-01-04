@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: remove temporary files when killed
+desc: stray SID conversion files on ^C
+type: :bugfix
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2009-01-04 15:43:40.602014 Z
+references: []
+
+id: 572573ad1e57cf7daf524f5b28171621a9b1dbf5
+log_events: 
+- - 2009-01-04 15:43:41.287840 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
