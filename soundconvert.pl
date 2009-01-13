@@ -783,10 +783,14 @@ sub process_soundfile($$)
     print "/tags\n";
     
     if (exists $tags->{$multiple_tracks_key}) {
-	my $len = length($tags->{$multiple_tracks_key});
+	my $track_count = $tags->{$multiple_tracks_key};
+	my $len = length($track_count);
 	$len = 2 if $len<2;
 	
-	for my $track (1..$tags->{$multiple_tracks_key}) {
+	# remove key so it does not get tagged
+	delete $tags->{$multiple_tracks_key};
+
+	for my $track (1..$track_count) {
 	    my $printtrack = sprintf "%0${len}d", $track;
 	    my $newfile = "$file.$printtrack.$encoder->{NEW_EXTENSION}";
 	    $tags->{TRACKNUM} = $track;
