@@ -743,7 +743,7 @@ sub recode($$$$$$)
 
     # rename output file
     if ($rename_fat) {
-	$newfile =~ tr/:\\\"/_/;
+	$newfile =~ tr/:\\\"?/_/;
     }
 
     print "newfile: <$newfile>\n";
