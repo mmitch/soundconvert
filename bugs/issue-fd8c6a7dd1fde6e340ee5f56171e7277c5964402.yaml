@@ -5,8 +5,8 @@ type: :feature
 component: soundconvert
 release: "1.43"
 reporter: Christian Garbs <mitch@cgarbs.de>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2009-01-17 20:28:54.553808 Z
 references: []
 
@@ -15,4 +15,8 @@ log_events:
 - - 2009-01-17 20:28:55.160336 Z
   - Christian Garbs <mitch@cgarbs.de>
   - created
+  - ""
+- - 2009-01-17 20:35:13.548355 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - closed with disposition fixed
   - ""

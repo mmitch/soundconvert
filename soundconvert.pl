@@ -667,6 +667,9 @@ my $typelist = {
 # default encoder is MP3
 my $encoder = $typelist->{'audio/mpeg'};
 
+# rename to FAT?
+my $rename_fat = 0;
+
 # check for configuration file
 my $rcfile = "$ENV{HOME}/.soundconvertrc";
 if (-r $rcfile) {
@@ -692,8 +695,10 @@ sub helptext() {
     print <<"EOF";
 soundconvert $version
 
-Usage:  soundconvert.pl [-h] [-o format] infile [infile [...]]
+Usage:  soundconvert.pl [-h] [-f] [-o format] infile [infile [...]]
   -h          print help text and exit
+  -f          remove non-FAT characters from output file
+              (warning: might overwrite existing files!)
   -o format   choose output format (default: $encoder->{NAME})
               available formats are:
 EOF
@@ -736,6 +741,11 @@ sub recode($$$$$$)
 {
     my ($handle, $encoder, $file, $newfile, $tags, $track) = @_;
 
+    # rename output file
+    if ($rename_fat) {
+	$newfile =~ tr/:\\\"/_/;
+    }
+
     print "newfile: <$newfile>\n";
     piped_fork
 	$handle->{DECODE_TO_WAV}, $file, $track,
@@ -746,7 +756,10 @@ sub recode($$$$$$)
 }
 
 
-
+if ($ARGV[0] eq '-f') {
+    shift @ARGV;
+    $rename_fat = 1;
+}
 
 if ($ARGV[0] eq '-o') {
     shift @ARGV;
@@ -758,6 +771,12 @@ if ($ARGV[0] eq '-o') {
     $encoder = typelist_find($type);
 }
 
+# ugly, try to be position independent...
+# better try getopts :-)
+if ($ARGV[0] eq '-f') {
+    shift @ARGV;
+    $rename_fat = 1;
+}
 
 my @files = map { { NAME=> $_, DELETE => 0 } } @ARGV;
 
