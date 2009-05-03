@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: add wma support
+desc: use mplayer to decode(?)
+type: :feature
+component: soundconvert
+release: "1.44"
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2009-05-03 17:14:50.787493 Z
+references: []
+
+id: 695c52c289d5c68c8c66d87ba06c2a63d616858c
+log_events: 
+- - 2009-05-03 17:14:51.975558 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
