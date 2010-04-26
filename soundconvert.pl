@@ -19,14 +19,16 @@ my $version = '1.43+git';
 my $multiple_tracks_key = "__multitracks__";
 
 # check for audio modules on startup
-our ($have_mp3_info, $have_ogg_vorbis_header, $have_audio_flac_header);
+our ($have_audio_flac_header, $have_mp3_info, $have_mp4_info, $have_ogg_vorbis_header);
 BEGIN {
-    eval { require MP3::Info; };
-    $have_mp3_info = not $@;
-    eval { require Ogg::Vorbis::Header; };
-    $have_ogg_vorbis_header = not $@;
     eval { require Audio::FLAC::Header; };
     $have_audio_flac_header = not $@;
+    eval { require MP3::Info; };
+    $have_mp3_info = not $@;
+    eval { require MP4::Info; };
+    $have_mp4_info = not $@;
+    eval { require Ogg::Vorbis::Header; };
+    $have_ogg_vorbis_header = not $@;
 }
 
 # check for archive/compression modules on startup
@@ -113,6 +115,82 @@ my $typelist = {
 	    my $file = shift;
 	    my $tags = shift;
 	    MP3::Info::set_mp3tag( $file, $tags );
+	},
+
+    },
+
+    'video/quicktime' => {
+
+	TYPE => 'sound',
+	IO => 'io',
+	NAME => 'AAC',
+	NEW_EXTENSION => 'mp4',
+	CHECK_FOR_TOOLS => sub {
+	    if (not $have_mp4_info) {
+		warn "AAC unavailable: Perl module MP4::Info not found";
+		return 0;
+	    }
+	    unless (defined which('faac')) {
+		warn "AAC unavailable: binary faac not found";
+		return 0;
+	    }
+	    unless (defined which('faad')) {
+		warn "AAC unavailable: binary faad not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    my $tags = MP4::Info::get_mp4tag( shift ) or return {};
+	    foreach my $tag qw(TAGVERSION NAM ART ALB DAY CMT GNRE TRKN[0] SIZE MS SECS CPIL MM SS LAYER FREQUENCY TOO TIME ENCRYPTED COPYRIGHT ENCODING BITRATE VERSION) {
+		delete $tags->{$tag};
+	    } 
+	    foreach my $key (keys %{$tags}) {
+		delete $tags->{$key} if $tags->{$key} eq '';
+	    }
+	    # capitalize KEYS
+	    return { map { uc($_) => $tags->{$_} } keys %{$tags} };
+	},
+	REMAP_INFO => {
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    my @call = ('faad','-b','1','-d','-f','2','-q','-w',$file);
+	    my @sox = ('sox','-t','.raw','-r','44100','-w','-c','2','-s','-','-t','.wav','-');
+	    piped_fork
+		sub {
+		    print STDERR "  decoding: <@call>\n";
+		    exec { $call[0] } @call;
+		}, 0, 0,
+	    sub {
+		print STDERR "  filter: <@sox>\n";
+		exec { $sox[0] } @sox;
+	    }, 0, 0;
+	    wait;
+	},
+	ENCODE_TO_NATIVE => sub {
+	    my $file = shift;
+	    my $tags = shift;
+	    my @call = ('faac',
+			'-b','128');
+	    
+	    push @call, ('--artist',$tags->{'ARTIST'}) if exists $tags->{'ARTIST'};
+	    push @call, ('--writer',$tags->{'WRITER'}) if exists $tags->{'WRITER'};
+	    push @call, ('--title',$tags->{'TITLE'}) if exists $tags->{'TITLE'};
+	    push @call, ('--genre',$tags->{'GENRE'}) if exists $tags->{'GENRE'};
+	    push @call, ('--album',$tags->{'ALBUM'}) if exists $tags->{'ALBUM'};
+	    push @call, ('--track',$tags->{'TRACK'}) if exists $tags->{'TRACK'};
+	    push @call, ('--year',$tags->{'YEAR'}) if exists $tags->{'YEAR'};
+	    push @call, ('--comment',$tags->{'COMMENT'}) if exists $tags->{'COMMENT'};
+
+	    push @call, ('-o', $file,
+			 '-');
+
+	    print STDERR "  encoding: <@call>\n";
+	    exec { $call[0] } @call;
+	},
+	TAG_NATIVE => sub {
+	    # done at encoding time
 	},
 
     },
