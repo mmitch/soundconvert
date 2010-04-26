@@ -1,0 +1,22 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "bugfix: don't display warnings when formats are unavailable"
+desc: ""
+type: :bugfix
+component: soundconvert
+release: "1.44"
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :closed
+disposition: :fixed
+creation_time: 2010-04-26 18:41:56.994358 Z
+references: []
+
+id: 38aab9b5d6b26432fb1c0d774a3e72197adc6a0e
+log_events: 
+- - 2010-04-26 18:41:58.467643 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
+- - 2010-04-26 18:43:10.931940 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - closed with disposition fixed
+  - ""

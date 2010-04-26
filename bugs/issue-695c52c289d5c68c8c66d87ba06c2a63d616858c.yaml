@@ -3,7 +3,7 @@ title: add wma support
 desc: use mplayer to decode(?)
 type: :feature
 component: soundconvert
-release: "1.44"
+release: 
 reporter: Christian Garbs <mitch@cgarbs.de>
 status: :unstarted
 disposition: 
@@ -15,4 +15,8 @@ log_events:
 - - 2009-05-03 17:14:51.975558 Z
   - Christian Garbs <mitch@cgarbs.de>
   - created
+  - ""
+- - 2010-04-26 18:42:54.465952 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - unassigned from release 1.44
   - ""
