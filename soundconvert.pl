@@ -3,7 +3,7 @@
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
 #
-# 2005-2006,2008-2009 (C) by Christian Garbs <mitch@cgarbs.de>
+# 2005-2006,2008-2010 (C) by Christian Garbs <mitch@cgarbs.de>
 # licensed under GNU GPL
 #
 
@@ -704,14 +704,16 @@ Usage:  soundconvert.pl [-h] [-f] [-o format] infile [infile [...]]
 EOF
     ;
     foreach my $type (keys %{$typelist}) {
-	if ($typelist->{$type}->{TYPE} eq 'sound' and $typelist->{$type}->{IO} =~ /o/ ) {
+	if (exists $typelist->{$type}->{TYPE} and $typelist->{$type}->{TYPE} eq 'sound'
+	    and exists $typelist->{$type}->{IO} and $typelist->{$type}->{IO} =~ /o/ ) {
 	    print "              ". lc $typelist->{$type}->{NAME} ."\n";
 	}
     }
     print "Available input formats are:\n ";
     my %inputlist;
     foreach my $type (keys %{$typelist}) {
-	if ($typelist->{$type}->{TYPE} eq 'sound' and $typelist->{$type}->{IO} =~ /i/ ) {
+	if (exists $typelist->{$type}->{TYPE} and $typelist->{$type}->{TYPE} eq 'sound'
+	    and exists $typelist->{$type}->{IO} and $typelist->{$type}->{IO} =~ /i/ ) {
 	    $inputlist{lc $typelist->{$type}->{NAME}}++;
 	}
     }
