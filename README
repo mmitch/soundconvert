@@ -4,7 +4,7 @@ soundconvert - convert ogg, mp3, flac, ... to ogg, mp3, flac, ...
 2005-2006,2008-2010 (C) by Christian Garbs <mitch@cgarbs.de>
 licensed under GNU GPL
 
-http://www.cgarbs.de/cgi-bin/gitweb.cgi/soundconvert.git
+http://github.com/mmitch/soundconvert
 
 
   *** WARNING ***
