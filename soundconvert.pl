@@ -832,6 +832,7 @@ sub recode($$$$$$)
 	$encoder->{ENCODE_TO_NATIVE}, $newfile, $tags;
     
     wait;
+    `sync`;
     &{$encoder->{TAG_NATIVE}}($newfile, $tags);
 }
 
