@@ -832,7 +832,6 @@ sub recode($$$$$$)
 	$encoder->{ENCODE_TO_NATIVE}, $newfile, $tags;
     
     wait;
-    `sync`;
     &{$encoder->{TAG_NATIVE}}($newfile, $tags);
 }
 
@@ -1002,30 +1001,44 @@ sub process_file($)
     }
 }
 
+sub wait_for_childs(@)
+# wait for (multiple) child processes
+{
+    my %childs = map { $_ => $_ } @_;
+
+    while ( keys %childs ) {
+	delete $childs{ wait() };
+    }
+}
+
 sub piped_fork($$$$$$) {
-    # prefork
-    my $fork = fork();
-    return unless defined $fork;
-    return if $fork;
-    # we are virgin child now
 
     my ($write_ref, $w_arg_1, $w_arg_2, $read_ref, $r_arg_1, $r_arg_2) = (@_);
     my ($write_handle, $read_handle);
     pipe $read_handle, $write_handle;
-    # fork again into reader and writer
-    $fork = fork();
-    return unless defined $fork;
-    if ($fork) {
+
+    # fork writer
+    my $writer_pid = fork();
+    return unless defined $writer_pid;
+    if ($writer_pid == 0) {
 	my $fd = $write_handle->fileno;
 	open STDOUT, ">&$fd" or die "couldn't dup write_handle: $!";
 	&$write_ref($w_arg_1, $w_arg_2);
 	exit;
-    } else {
+    }
+    
+    # fork reader
+    my $reader_pid = fork();
+    return unless defined $reader_pid;
+    if ($reader_pid == 0) {
 	my $fd = $read_handle->fileno;
 	open STDIN, "<&$fd" or die "couldn't dup read_handle: $!";
 	&$read_ref($r_arg_1, $r_arg_2);
 	exit;
     }
+
+    # wait for both
+    wait_for_childs( $writer_pid, $reader_pid);
 }
 
 while (my $file = shift @files) {
