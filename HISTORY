@@ -1,5 +1,6 @@
 == 1.44 / 2010-12-29
 * add AAC handling
+* add FAT filename translation
 * bugfix: fix MP3 tagging
 * bugfix: don't display duplicate warnings when formats are unavailable
 
