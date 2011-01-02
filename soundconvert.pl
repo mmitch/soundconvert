@@ -1026,7 +1026,7 @@ sub piped_fork($$$$$$) {
 	&$write_ref($w_arg_1, $w_arg_2);
 	exit;
     }
-    close $writer_handle;
+    close $writ_handle;
     
     # fork reader
     my $reader_pid = fork();
@@ -1037,7 +1037,7 @@ sub piped_fork($$$$$$) {
 	&$read_ref($r_arg_1, $r_arg_2);
 	exit;
     }
-    close $reader_handle;
+    close $read_handle;
 
     # wait for both
     wait_for_childs( $writer_pid, $reader_pid);
