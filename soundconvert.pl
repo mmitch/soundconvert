@@ -1026,7 +1026,7 @@ sub piped_fork($$$$$$) {
 	&$write_ref($w_arg_1, $w_arg_2);
 	exit;
     }
-    close $writ_handle;
+    close $write_handle;
     
     # fork reader
     my $reader_pid = fork();
