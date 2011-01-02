@@ -59,10 +59,14 @@ releases:
     - ""
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "1.45"
-  status: :unreleased
-  release_time: 
+  status: :released
+  release_time: 2011-01-02 20:36:51.785611 Z
   log_events: 
   - - 2010-12-29 21:49:25.381782 Z
     - Christian Garbs <mitch@cgarbs.de>
     - created
+    - ""
+  - - 2011-01-02 20:36:51.785639 Z
+    - Christian Garbs <mitch@cgarbs.de>
+    - released
     - ""
