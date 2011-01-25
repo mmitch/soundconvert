@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: use mktemp() for temporary files
+desc: don't use hardcoded filenames, this might overwrite files
+type: :bugfix
+component: soundconvert
+release: 
+reporter: Christian Garbs <mitch@cgarbs.de>
+status: :unstarted
+disposition: 
+creation_time: 2011-01-25 19:08:09.455293 Z
+references: []
+
+id: 7e03ec271806576bd4046f634695203cb9a3be7d
+log_events: 
+- - 2011-01-25 19:08:10.874360 Z
+  - Christian Garbs <mitch@cgarbs.de>
+  - created
+  - ""
