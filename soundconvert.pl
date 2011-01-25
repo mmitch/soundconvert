@@ -609,6 +609,46 @@ my $typelist = {
 	},
     },
 
+    'audio/flv' => {
+
+	TYPE => 'sound',
+	IO => 'i',
+	NAME => 'FLV',
+	NEW_EXTENSION => 'flv',
+	CHECK_FOR_TOOLS => sub {
+	    unless (defined which('mplayer')) {
+		warn "FLV unavailable: binary mplayer not found";
+		return 0;
+	    }
+	    return 1;
+	},
+	GET_INFO => sub {
+	    # no tags yet
+	    return {};
+	},
+	REMAP_INFO => {
+	},
+	DECODE_TO_WAV => sub {
+	    my $file = shift;
+	    my $tmpfile = $file . '~~temp~~' . $$;
+	    my @call = ('mplayer','-really-quiet','-vc','null','-vo','null',
+			'-ao', 'pcm:file="'.$tmpfile.'":fast',$file);
+	    my @cat = ('cat',$tmpfile);
+
+	    # no piping possible!
+	    system @call;
+	    system @cat;
+	    unlink $tmpfile;
+	    exit 0;
+	},
+	ENCODE_TO_NATIVE => sub {
+	    die "can't encode to flv!";
+	},
+	TAG_NATIVE => sub {
+	},
+	
+    },
+
     # TYPE              scalar 'archive'
     # NAME              (scalar)
     # CHECK_FOR_TOOLS   (coderef returning scalar)
@@ -966,6 +1006,8 @@ sub process_file($)
 	    $type = 'audio/mpeg';
 	} elsif ($filename =~ /\.sid$/i ) {
 	    $type = 'audio/sid';
+	} elsif ($filename =~ /\.flv$/i ) {
+	    $type = 'audio/flv';
 	}
     } elsif ($type =~ 'audio/unknown') {
 	my $filetype = $ft->checktype_filename($filename);
