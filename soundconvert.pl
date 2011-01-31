@@ -609,7 +609,7 @@ my $typelist = {
 	},
     },
 
-    'audio/flv' => {
+    'video/x-flv' => {
 
 	TYPE => 'sound',
 	IO => 'i',
@@ -1007,7 +1007,7 @@ sub process_file($)
 	} elsif ($filename =~ /\.sid$/i ) {
 	    $type = 'audio/sid';
 	} elsif ($filename =~ /\.flv$/i ) {
-	    $type = 'audio/flv';
+	    $type = 'video/x-flv';
 	}
     } elsif ($type =~ 'audio/unknown') {
 	my $filetype = $ft->checktype_filename($filename);
