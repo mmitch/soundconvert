@@ -1,3 +1,7 @@
+== 1.46 / 2011-05-15
+* add .flv decoding via mplayer
+* bugfix: fix sox invocation
+
 == 1.45 / 2011-01-02
 * bugfix: lockups on some conversions
 
