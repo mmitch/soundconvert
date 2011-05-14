@@ -14,7 +14,7 @@ use File::Which;
 use IO::Handle;
 use IPC::Open3;
 
-my $version = '1.46';
+my $version = '1.46+git';
 
 my $multiple_tracks_key = "__multitracks__";
 
