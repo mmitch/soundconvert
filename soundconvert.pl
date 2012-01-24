@@ -631,7 +631,7 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my $tmpfile = $file . '~~temp~~' . $$;
-	    my @call = ('mplayer','-really-quiet','-vc','null','-vo','null',
+	    my @call = ('mplayer','-really-quiet','-vc','copy','-vo','null',
 			'-ao', 'pcm:file="'.$tmpfile.'":fast',$file);
 	    my @cat = ('cat',$tmpfile);
 
