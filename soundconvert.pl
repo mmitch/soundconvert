@@ -142,7 +142,7 @@ my $typelist = {
 	},
 	GET_INFO => sub {
 	    my $tags = MP4::Info::get_mp4tag( shift ) or return {};
-	    foreach my $tag qw(TAGVERSION NAM ART ALB DAY CMT GNRE TRKN[0] SIZE MS SECS CPIL MM SS LAYER FREQUENCY TOO TIME ENCRYPTED COPYRIGHT ENCODING BITRATE VERSION) {
+	    foreach my $tag (qw(TAGVERSION NAM ART ALB DAY CMT GNRE TRKN[0] SIZE MS SECS CPIL MM SS LAYER FREQUENCY TOO TIME ENCRYPTED COPYRIGHT ENCODING BITRATE VERSION)) {
 		delete $tags->{$tag};
 	    } 
 	    foreach my $key (keys %{$tags}) {
