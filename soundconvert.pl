@@ -19,7 +19,7 @@ my $version = '1.46+git';
 my $multiple_tracks_key = "__multitracks__";
 
 # check for audio modules on startup
-our ($have_audio_flac_header, $have_mp3_info, $have_mp4_info, $have_ogg_vorbis_header);
+our ($have_audio_flac_header, $have_mp3_info, $have_mp4_info, $have_ogg_vorbis_header, $have_ogg_vorbis_header_pureperl);
 BEGIN {
     eval { require Audio::FLAC::Header; };
     $have_audio_flac_header = not $@;
@@ -29,6 +29,8 @@ BEGIN {
     $have_mp4_info = not $@;
     eval { require Ogg::Vorbis::Header; };
     $have_ogg_vorbis_header = not $@;
+    eval { require Ogg::Vorbis::Header::PurePerl; };
+    $have_ogg_vorbis_header_pureperl = not $@;
 }
 
 # check for archive/compression modules on startup
@@ -202,8 +204,8 @@ my $typelist = {
 	NAME => 'OGG',
 	NEW_EXTENSION => 'ogg',
 	CHECK_FOR_TOOLS => sub {
-	    if (not $have_ogg_vorbis_header) {
-		warn "OGG unavailable: Perl module Ogg::Vorbis::Header not found";
+	    if (not ($have_ogg_vorbis_header or $have_ogg_vorbis_header_pureperl)) {
+		warn "OGG unavailable: neither Perl module Ogg::Vorbis::Header nor Ogg::Vorbis::Header::PurePerl found";
 		return 0;
 	    }
 	    unless (defined which('oggenc')) {
@@ -217,7 +219,7 @@ my $typelist = {
 	    return 1;
 	},
 	GET_INFO => sub {
-	    my $ogg = Ogg::Vorbis::Header->new( shift );
+	    my $ogg = $have_ogg_vorbis_header ? Ogg::Vorbis::Header->new( shift ) : Ogg::Vorbis::Header::PurePerl->new( shift );
 	    my $tags = {};
 	    foreach my $key ($ogg->comment_tags) {
 		$tags->{uc $key} = join ' ', $ogg->comment($key);
