@@ -1,3 +1,9 @@
+== 1.47 / 2017-11-24
+* speed up .flv convertions
+* remove warning with current Perl versions
+* fall back to Ogg::Vorbis::Header::PurePerl if Ogg::Vorbis::Header
+  is not available
+
 == 1.46 / 2011-05-15
 * add .flv decoding via mplayer
 * bugfix: fix sox invocation

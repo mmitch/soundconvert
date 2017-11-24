@@ -3,7 +3,7 @@
 # soundconvert
 # convert ogg, mp3, flac, ... to ogg, mp3, flac, ... while keeping tag information
 #
-# 2005-2006,2008-2011 (C) by Christian Garbs <mitch@cgarbs.de>
+# 2005-2006,2008-2012,2015,2017 (C) by Christian Garbs <mitch@cgarbs.de>
 # licensed under GNU GPL
 #
 
@@ -14,7 +14,7 @@ use File::Which;
 use IO::Handle;
 use IPC::Open3;
 
-my $version = '1.46+git';
+my $version = '1.47';
 
 my $multiple_tracks_key = "__multitracks__";
 
