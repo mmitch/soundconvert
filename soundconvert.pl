@@ -158,7 +158,7 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my @call = ('faad','-b','1','-d','-f','2','-q','-w',$file);
-	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-s','-','-t','.wav','-');
+	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-','-t','.wav','-');
 	    piped_fork
 		sub {
 		    print STDERR "  decoding: <@call>\n";
@@ -294,7 +294,7 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my @call = ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
-	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-s','-','-t','.wav','-');
+	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-','-t','.wav','-');
 	    piped_fork
 		sub {
 		    print STDERR "  decoding: <@call>\n";
@@ -368,7 +368,7 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    my @call = ('sox',$file,'-t','.wav','-b','16','-r','44100','-e','signed-integer','-c','2','-s','-');
+	    my @call = ('sox',$file,'-t','.wav','-b','16','-r','44100','-e','signed-integer','-c','2','-');
 	    print STDERR "  decoding: <@call>\n";
 	    exec { $call[0] } @call;
 	},
@@ -487,7 +487,7 @@ my $typelist = {
 	    my $file = shift;
 	    my $track = shift;
 	    my @call = ('gbsplay','-o','stdout','-r','44100','-g','0','-f','6','-t','165',$file,$track,$track);
-	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-s','-','-t','.wav','-');
+	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-','-t','.wav','-');
 	    piped_fork
 		sub {
 		    print STDERR "  decoding: <@call>\n";
@@ -553,7 +553,7 @@ my $typelist = {
 	    my $track = shift;
 	    my $tmpfile = $file . '~~temp~~' . $$;
 	    my @call = ('sidplay2','-q','-w'.$tmpfile,'-t3:30','-os','-o'.$track,$file);
-	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','1','-s',$tmpfile,'-t','.wav','-');
+	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','1',$tmpfile,'-t','.wav','-');
 
 	    # no piping possible!
 	    system @call;
@@ -592,7 +592,7 @@ my $typelist = {
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
 	    my @call = ('timidity','-a','-Ow','-o','-','-idqq','--no-loop','-k','0','-Ow','--output-stereo','--output-16bit','-s','44100',$file);
-	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-s','-','-t','.wav','-');
+	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-','-t','.wav','-');
 	    piped_fork
 		sub {
 		    print STDERR "  decoding: <@call>\n";
