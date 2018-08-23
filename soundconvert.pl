@@ -293,7 +293,7 @@ my $typelist = {
 	},
 	DECODE_TO_WAV => sub {
 	    my $file = shift;
-	    my @call = ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','6',$file);
+	    my @call = ('mikmod','-o','16s','-f','44100','--hqmixer','--nosurround','--nofadeout','--noloops','--exitafter','-q','-d','11',$file);
 	    my @sox = ('sox','-t','.raw','-b','16','-r','44100','-e','signed-integer','-c','2','-','-t','.wav','-');
 	    piped_fork
 		sub {
